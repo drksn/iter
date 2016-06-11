@@ -12,6 +12,8 @@ namespace iter {
 template <class LoadFunc, class Buffer = typename LoadFunc::SecondArg>
 class FileKeeper : public Loader {
 public:
+    ~FileKeeper();
+
     template <class LoadFuncInit, class ...Types>
     FileKeeper(const std::string& filename,
         LoadFuncInit&& load_func_init, Types&& ...args);
@@ -20,6 +22,8 @@ public:
     FileKeeper(const std::string& filename, Types&& ...args);
 
     bool GetBuffer(std::shared_ptr <Buffer>* ptr);
+    // If the corresponding file is modified,
+    // another class FileLoaderManager will call this Load() automatically.
     virtual bool Load();
 
 private:

@@ -1,11 +1,17 @@
 #ifndef ITER_FILE_KEEPER_IMPL_HPP
 #define ITER_FILE_KEEPER_IMPL_HPP
 
+#include <iter/datamanager/detail/file_loader_manager.hpp>
 #include <string>
 #include <memory>
 #include <utility>
 
 namespace iter {
+
+template <class LoadFunc, class Buffer>
+FileKeeper <LoadFunc, Buffer>::~FileKeeper() {
+    FileLoaderManager::GetInstance()->DeleteFileLoader(this, filename_);
+}
 
 template <class LoadFunc, class Buffer>
 template <class LoadFuncInit, class ...Types>
@@ -16,6 +22,7 @@ FileKeeper <LoadFunc, Buffer>::FileKeeper(const std::string& filename,
         new LoadFunc(std::forward <LoadFuncInit> (load_func_init)));
     buffer_mgr_ptr_ = std::unique_ptr <BufferMgr> (
         new BufferMgr(std::forward <Types> (args)...));
+    FileLoaderManager::GetInstance()->InsertFileLoader(this, filename);
 }
 
 template <class LoadFunc, class Buffer>
@@ -25,6 +32,7 @@ FileKeeper <LoadFunc, Buffer>::FileKeeper(
     filename_ = filename;
     load_func_ptr_ = std::unique_ptr <LoadFunc> (new LoadFunc(args...));
     buffer_mgr_ptr_ = std::unique_ptr <BufferMgr> (new BufferMgr(args...));
+    FileLoaderManager::GetInstance()->InsertFileLoader(this, filename);
 }
 
 template <class LoadFunc, class Buffer>

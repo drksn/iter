@@ -8,7 +8,7 @@ INCLUDE=-I./ \
 
 #CXX=g++-5
 
-CXXFLAGS=-isystem -Wall --std=c++0x -DDEBUG -g
+CXXFLAGS=-isystem -Wall --std=c++11 -pthread -DDEBUG -g
 
 LIB=-L./googletest/ \
 	-lgtest -lgtest_main
@@ -22,10 +22,9 @@ OBJS=$(patsubst %.cpp,%.o,$(SRCS))
 all : build_gtest $(OBJS) test
 
 build_gtest:
-	cmake googletest
-	make -C googletest
+	cd googletest && cmake . && make
 
-test: log_test link_test util_test
+test: log_test link_test util_test file_keeper_test
 
 log_test: log_test.o $(OBJS)
 	$(CXX) ${CXXFLAGS} $^ -o $@ $(LIB)
@@ -36,10 +35,13 @@ link_test: link_test.o $(OBJS)
 util_test: util_test.o $(OBJS)
 	$(CXX) ${CXXFLAGS} $^ -o $@ $(LIB)
 
+file_keeper_test: file_keeper_test.o $(OBJS)
+	$(CXX) ${CXXFLAGS} $^ -o $@ $(LIB)
+
 %.o:%.cpp
 	$(CXX) -c ${INCLUDE} ${CXXFLAGS} $^
 
 clean:
-	rm -rf *.out *.o *.log *_test
+	rm -rf *.out *.o *.log *_test *.test
 
 remake: clean all

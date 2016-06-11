@@ -28,7 +28,7 @@ bool FileReader::operator () (
 }
 
 bool FileWriter::operator() (
-        const FirstArg& filename, const SecondArg& content) {
+        const FirstArg& content, const SecondArg& filename) {
    std::ofstream out(filename.c_str(), std::ios::out | std::ios::binary);
    if (out) {
         try {

@@ -37,8 +37,8 @@ template <class Buffer>
 void DoubleBuffer <Buffer>::SwapBuffer() {
     std::lock_guard <std::mutex> load_lock(mutex);
     active_index_ ^= 1;
+    is_buffer_ready_ = true;
 }
-
 
 template <class Buffer>
 bool DoubleBuffer <Buffer>::UpdateAndSwapBuffer(
@@ -48,6 +48,7 @@ bool DoubleBuffer <Buffer>::UpdateAndSwapBuffer(
     std::lock_guard <std::mutex> load_lock(mutex);
     buffer_ptr_[next_active_index] = ptr;
     active_index_ ^= 1;
+    is_buffer_ready_ = true;
     return true;
 }
 
