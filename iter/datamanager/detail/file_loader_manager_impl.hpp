@@ -70,7 +70,7 @@ void FileLoaderManager::DeleteFileLoader(
     int watcher_fd = -1;
     auto loader_it = loader_map_.find(loader_ptr);
     if (loader_it != loader_map_.end()) watcher_fd = loader_it->second;
-    if (watcher_fd != -1) {
+    if (watcher_fd == -1) {
         ITER_WARN_KV(MSG("No such file loader."), KV(filename));
         return;
     }
@@ -96,6 +96,11 @@ void FileLoaderManager::Callback() {
     char buffer[ITER_INOTIFY_BUF_LEN];
     while (!shutdown_) {
         int retval = select(fdmax, &rfds, NULL, NULL, &tv);
+        if (retval == -1) {
+            ITER_WARN_KV(MSG("Select error."), KV(errno));
+            continue;
+        }
+        // The number of fd in select, and we have only one.
         if (retval != 1) continue;
         int length = read(inotify_fd_, buffer, ITER_INOTIFY_BUF_LEN);
         if (length < 0) continue;
