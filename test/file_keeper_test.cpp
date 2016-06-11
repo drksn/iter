@@ -37,15 +37,17 @@ TEST_F(FileKeeperTest, SimpleTest) {
     EXPECT_EQ(*ptr, content);
 }
 
-/*
+
 TEST_F(FileKeeperTest, ModifyTest) {
     std::string newtext = "wowuwo~ wowowo~";
+    usleep(1e5);
     bool write_ret = FileWriter()(newtext, filename);
     EXPECT_TRUE(write_ret);
-    usleep(1e3);
+    usleep(1e5);
     std::shared_ptr <std::string> ptr;
     bool get_ret = file_keeper_ptr->GetBuffer(&ptr);
     EXPECT_TRUE(get_ret);
     EXPECT_EQ(*ptr, newtext);
+    usleep(1e5);
 }
-*/
+

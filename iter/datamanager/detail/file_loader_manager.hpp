@@ -8,6 +8,11 @@
 #include <thread>
 #include <memory>
 
+#define ITER_FILE_LOADER_MANAGER_SELECT_TIMEOUT_SEC 2
+#define ITER_INOTIFY_MASK       (IN_MODIFY | IN_CREATE)
+#define ITER_INOTIFY_EVENT_SIZE (sizeof (struct inotify_event))
+#define ITER_INOTIFY_BUF_LEN    (1024 * (ITER_INOTIFY_EVENT_SIZE + 16))
+
 namespace iter {
 
 class FileLoaderManager {
@@ -20,14 +25,17 @@ public:
 
 private:
     typedef struct {
+        Loader* loader_ptr;
         std::string filename;
-        int watcher_fd;
     } Node;
 
     FileLoaderManager();
     ~FileLoaderManager();
+    // The key is watcher fd.
+    std::map <int, Node> file_map_;
+    // Loader_ptr -> watcher fd.
+    std::map <Loader*, int> loader_map_;
 
-    std::map <Loader*, Node> file_map_;
     int inotify_fd_;
     std::shared_ptr <std::thread> thread_ptr_;
     std::mutex mtx_;
