@@ -96,7 +96,7 @@ void FileLoaderManager::Callback() {
     char buffer[ITER_INOTIFY_BUF_LEN];
     while (!shutdown_) {
         int retval = select(fdmax, &rfds, NULL, NULL, &tv);
-        if (retval != 1 || retval == 0) continue;
+        if (retval != 1) continue;
         int length = read(inotify_fd_, buffer, ITER_INOTIFY_BUF_LEN);
         if (length < 0) continue;
         int i = 0;
