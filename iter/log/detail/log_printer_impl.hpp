@@ -16,7 +16,7 @@ LogPrinter::LogPrinter() {
 }
 
 LogPrinter::~LogPrinter() {
-    fclose(ptr_);
+    if (ptr_ != NULL) fclose(ptr_);
 }
 
 uint64_t LogPrinter::GetFileNode() {

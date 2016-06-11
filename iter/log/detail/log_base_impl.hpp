@@ -18,7 +18,6 @@ namespace iter {
 static const char LOG_LEVEL[][6] = {
     "DEBUG", "INFO", "WARN", "ERROR", "FATAL"};
 
-
 LogBase* LogBase::GetInstance() {
     static LogBase log_base;
     return &log_base;
