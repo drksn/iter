@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <utility>
+#include <type_traits>
 
 namespace iter {
 
@@ -27,7 +28,7 @@ template <class First, class ...Functor>
 template <class Source, class Target>
 bool Link <First, Functor...>::operator () (
         Source&& source, Target&& target) {
-    typename First::SecondArg mid;
+    typename std::remove_reference <typename First::second_argument_type>::type mid;
     bool first_ret = (*first_ptr_)(
         std::forward <Source> (source), mid);
     if (!first_ret) return false;

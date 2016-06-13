@@ -7,16 +7,18 @@ namespace iter {
 
 class FileReader {
 public:
-    typedef std::string FirstArg;
-    typedef std::string SecondArg;
-    bool operator () (const FirstArg& filename, SecondArg& content);
+    typedef bool result_type;
+    typedef const std::string& first_argument_type;
+    typedef std::string& second_argument_type;
+    bool operator () (first_argument_type filename, second_argument_type content);
 };
 
 class FileWriter {
 public:
-    typedef std::string FirstArg;
-    typedef std::string SecondArg;
-    bool operator () (const FirstArg& content, const SecondArg& filename);
+    typedef bool result_type;
+    typedef const std::string& first_argument_type;
+    typedef const std::string& second_argument_type;
+    bool operator () (first_argument_type content, second_argument_type filename);
 };
 
 } // namespace iter

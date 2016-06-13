@@ -14,8 +14,9 @@ private:
     typedef Link <Functor...> Second;
 
 public:
-    typedef typename First::FirstArg FirstArg;
-    typedef typename Second::SecondArg SecondArg;
+    typedef bool result_type;
+    typedef typename First::first_argument_type first_argument_type;
+    typedef typename Second::second_argument_type second_argument_type;
     // This function can be matched only if there is no argument.
     template <class ...Types>
     Link(Types&& ...args);
@@ -34,8 +35,9 @@ private:
 template <class First>
 class Link <First> {
 public:
-    typedef typename First::FirstArg FirstArg;
-    typedef typename First::SecondArg SecondArg;
+    typedef bool result_type;
+    typedef typename First::first_argument_type first_argument_type;
+    typedef typename First::second_argument_type second_argument_type;
 
     template <class ...Types>
     Link(Types&& ...args);

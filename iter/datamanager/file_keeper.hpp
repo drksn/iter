@@ -6,10 +6,12 @@
 #include <string>
 #include <memory>
 #include <mutex>
+#include <type_traits>
 
 namespace iter {
 
-template <class LoadFunc, class Buffer = typename LoadFunc::SecondArg>
+template <class LoadFunc, class Buffer =
+    typename std::remove_reference <typename LoadFunc::second_argument_type>::type>
 class FileKeeper : public Loader {
 public:
     ~FileKeeper();
