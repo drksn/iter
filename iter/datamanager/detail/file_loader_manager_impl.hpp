@@ -4,6 +4,7 @@
 #include <iter/log.hpp>
 #include <sys/inotify.h>
 #include <sys/select.h>
+#include <sys/stat.h>
 #include <sys/time.h>
 #include <unistd.h>
 #include <functional>
@@ -42,24 +43,26 @@ FileLoaderManager* FileLoaderManager::GetInstance() {
 
 void FileLoaderManager::InsertFileLoader(
         Loader* loader_ptr, const std::string& filename) {
-    bool ret = loader_ptr->Load();
-    if (!ret) {
-        ITER_WARN_KV(MSG("Load failed."), KV(filename));
-    }
-    else {
-        ITER_INFO_KV(MSG("Load success."), KV(filename));
+    struct stat f_stat;
+    // If filename not exist, touch an empty file.
+    if (stat(filename.c_str(), &f_stat) != 0){
+        std::string cmd = "touch " + filename;
+        system(cmd.c_str());
+        ITER_WARN_KV(
+            MSG("File not found and touched a new empty file."),
+            KV(filename));
     }
 
-    Node node;
-    node.loader_ptr = loader_ptr;
-    node.filename = filename;
+    std::lock_guard <std::mutex> lck(mtx_);
     int watcher_fd = inotify_add_watch(
-        inotify_fd_, node.filename.c_str(), ITER_INOTIFY_MASK);
+        inotify_fd_, filename.c_str(), ITER_INOTIFY_MASK);
     if (watcher_fd == -1) {
         ITER_ERROR_KV(MSG("Add watcher failed."), KV(errno), KV(filename));
         return;
     }
-    std::lock_guard <std::mutex> lck(mtx_);
+    Node node;
+    node.loader_ptr = loader_ptr;
+    node.filename = filename;
     file_map_[watcher_fd] = node;
     loader_map_[loader_ptr] = watcher_fd;
     ITER_INFO_KV(MSG("Insert success."), KV(watcher_fd), KV(filename));
@@ -67,6 +70,7 @@ void FileLoaderManager::InsertFileLoader(
 
 void FileLoaderManager::DeleteFileLoader(
         Loader* loader_ptr, const std::string& filename) {
+    std::lock_guard <std::mutex> lck(mtx_);
     int watcher_fd = -1;
     auto loader_it = loader_map_.find(loader_ptr);
     if (loader_it != loader_map_.end()) watcher_fd = loader_it->second;
@@ -74,12 +78,14 @@ void FileLoaderManager::DeleteFileLoader(
         ITER_WARN_KV(MSG("No such file loader."), KV(filename));
         return;
     }
-    std::lock_guard <std::mutex> lck(mtx_);
     file_map_.erase(watcher_fd);
     loader_map_.erase(loader_ptr);
+
     int rm_ret = inotify_rm_watch(inotify_fd_, watcher_fd);
     if (rm_ret == -1) {
-        ITER_ERROR_KV(MSG("Rm watcher failed."), KV(errno), KV(filename));
+        ITER_ERROR_KV(MSG("Rm watcher failed."),
+            KV(errno), KV(watcher_fd), KV(filename));
+        return;
     }
     ITER_INFO_KV(MSG("Delete success."), KV(watcher_fd), KV(filename));
 }
@@ -107,22 +113,34 @@ void FileLoaderManager::Callback() {
         int i = 0;
         while (i < length) {
             struct inotify_event *event = (struct inotify_event*) &buffer[i];
+            Node node;
+            bool trigger = false;
             if (event->mask & ITER_INOTIFY_MASK) {
                 std::lock_guard <std::mutex> lck(mtx_); // NOTICE
                 if (file_map_.find(event->wd) == file_map_.end()) {
-                    ITER_WARN_KV(MSG("No such file watcher."));
+                    ITER_WARN_KV(MSG("No such file watcher."),
+                        KV("watcher_fd", event->wd), KV("event", event->mask));
                 }
                 else {
-                    Node node = file_map_[event->wd];
-                    bool load_ret = node.loader_ptr->Load();
-                    if (!load_ret) {
-                        ITER_WARN_KV(
-                            MSG("Auto load failed."), KV("filename", node.filename));
-                    }
-                    else {
-                        ITER_INFO_KV(
-                            MSG("Auto load success."), KV("filename", node.filename));
-                    }
+                    node = file_map_[event->wd];
+                    trigger = true;
+                }
+            }
+            if (trigger) {
+                if (event->mask & (IN_DELETE_SELF | IN_MOVE)) {
+                    DeleteFileLoader(node.loader_ptr, node.filename);
+                    InsertFileLoader(node.loader_ptr, node.filename);
+                }
+                bool load_ret = node.loader_ptr->Load();
+                if (!load_ret) {
+                    ITER_WARN_KV(
+                        MSG("Auto load failed."),
+                        KV("filename", node.filename), KV("event", event->mask));
+                }
+                else {
+                    ITER_INFO_KV(
+                        MSG("Auto load success."),
+                        KV("filename", node.filename), KV("event", event->mask));
                 }
             }
             i += ITER_INOTIFY_EVENT_SIZE + event->len;

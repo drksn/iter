@@ -2,6 +2,7 @@
 #define ITER_FILE_KEEPER_IMPL_HPP
 
 #include <iter/datamanager/detail/file_loader_manager.hpp>
+#include <iter/log.hpp>
 #include <string>
 #include <memory>
 #include <utility>
@@ -23,6 +24,14 @@ FileKeeper <LoadFunc, Buffer>::FileKeeper(const std::string& filename,
     buffer_mgr_ptr_ = std::unique_ptr <BufferMgr> (
         new BufferMgr(std::forward <Types> (args)...));
     FileLoaderManager::GetInstance()->InsertFileLoader(this, filename);
+
+    bool load_ret = Load();
+    if (!load_ret) {
+        ITER_WARN_KV(MSG("Load failed."), KV(filename));
+    }
+    else {
+        ITER_INFO_KV(MSG("Load success."), KV(filename));
+    }
 }
 
 template <class LoadFunc, class Buffer>
@@ -33,6 +42,14 @@ FileKeeper <LoadFunc, Buffer>::FileKeeper(
     load_func_ptr_ = std::unique_ptr <LoadFunc> (new LoadFunc(args...));
     buffer_mgr_ptr_ = std::unique_ptr <BufferMgr> (new BufferMgr(args...));
     FileLoaderManager::GetInstance()->InsertFileLoader(this, filename);
+
+    bool load_ret = Load();
+    if (!load_ret) {
+        ITER_WARN_KV(MSG("Load failed."), KV(filename));
+    }
+    else {
+        ITER_INFO_KV(MSG("Load success."), KV(filename));
+    }
 }
 
 template <class LoadFunc, class Buffer>
