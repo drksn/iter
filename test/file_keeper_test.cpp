@@ -58,7 +58,7 @@ void MoveWrite(const std::string& content, const std::string& filename) {
     system(cmd.c_str());
 }
 
-TEST_F(FileKeeperTest, MoveTest) {
+TEST_F(FileKeeperTest, MoveCoverTest) {
     std::string text_test = "GIRIGIRI_EYE\n";
     MoveWrite(text_test, filename);
     usleep(1e5);
@@ -73,19 +73,27 @@ TEST_F(FileKeeperTest, MoveTest) {
     get_ret = file_keeper_ptr->GetBuffer(&ptr);
     EXPECT_TRUE(get_ret);
     EXPECT_EQ(text_test, *ptr);
+}
 
+TEST_F(FileKeeperTest, MoveSelfTest) {
     std::string cmd = "mv " + filename + " " + filename + ".tmp2";
     system(cmd.c_str());
+    std::string text_test = "BILIBILI_EYE\n";
+    bool write_ret = FileWriter()(text_test, filename+".tmp2");
+    EXPECT_TRUE(write_ret);
+
     cmd = "mv " + filename + ".tmp2 " + filename;
     system(cmd.c_str());
     usleep(1e5);
-    get_ret = file_keeper_ptr->GetBuffer(&ptr);
+
+    std::shared_ptr <std::string> ptr;
+    bool get_ret = file_keeper_ptr->GetBuffer(&ptr);
     EXPECT_TRUE(get_ret);
     EXPECT_EQ(text_test, *ptr);
 }
 
 TEST_F(FileKeeperTest, DeleteTest) {
-    std::string filename_test = "__BI__.test";
+    std::string filename_test = "bilibili.test";
     std::string text_test = "GIriGIri\n";
     FileKeeper <FileReader> fk(filename_test);
     FileWriter()(text_test, filename_test);
@@ -102,6 +110,5 @@ TEST_F(FileKeeperTest, DeleteTest) {
     get_ret = fk.GetBuffer(&ptr);
     EXPECT_TRUE(get_ret);
     EXPECT_EQ(text_test, *ptr);
-    usleep(1e5);
 }
 

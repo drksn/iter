@@ -9,8 +9,8 @@
 #include <memory>
 
 #define ITER_FILE_LOADER_MANAGER_SELECT_TIMEOUT_SEC 2
-#define ITER_INOTIFY_MASK       (IN_MODIFY | IN_DELETE_SELF | IN_MOVE)
-#define ITER_INOTIFY_EVENT_SIZE (sizeof (struct inotify_event))
+#define ITER_INOTIFY_MASK       (IN_MODIFY | IN_DELETE_SELF | IN_MOVE_SELF)
+#define ITER_INOTIFY_EVENT_SIZE (sizeof(struct inotify_event))
 #define ITER_INOTIFY_BUF_LEN    (1024 * (ITER_INOTIFY_EVENT_SIZE + 16))
 
 namespace iter {
@@ -21,16 +21,17 @@ public:
     static bool IsDestructed();
     void InsertFileLoader(Loader* loader_ptr, const std::string& filename);
     void DeleteFileLoader(Loader* loader_ptr, const std::string& filename);
-    void Callback();
 
 private:
+    FileLoaderManager();
+    ~FileLoaderManager();
+    void Callback();
+
     typedef struct {
         Loader* loader_ptr;
         std::string filename;
     } Node;
 
-    FileLoaderManager();
-    ~FileLoaderManager();
     // The key is watcher fd.
     std::map <int, Node> file_map_;
     // Loader_ptr -> watcher fd.

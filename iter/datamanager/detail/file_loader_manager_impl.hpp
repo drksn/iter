@@ -126,8 +126,9 @@ void FileLoaderManager::Callback() {
                     trigger = true;
                 }
             }
+            // Watched event happened.
             if (trigger) {
-                if (event->mask & (IN_DELETE_SELF | IN_MOVE)) {
+                if (event->mask & (IN_DELETE_SELF | IN_MOVE_SELF)) {
                     DeleteFileLoader(node.loader_ptr, node.filename);
                     InsertFileLoader(node.loader_ptr, node.filename);
                 }
