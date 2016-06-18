@@ -8,7 +8,7 @@
 #include <thread>
 #include <memory>
 
-#define ITER_FILE_LOADER_MANAGER_SELECT_TIMEOUT_SEC 2
+#define ITER_FILE_LOADER_MANAGER_SELECT_TIMEOUT_SEC 1
 #define ITER_INOTIFY_MASK       (IN_MODIFY | IN_DELETE_SELF | IN_MOVE_SELF)
 #define ITER_INOTIFY_EVENT_SIZE (sizeof(struct inotify_event))
 #define ITER_INOTIFY_BUF_LEN    (1024 * (ITER_INOTIFY_EVENT_SIZE + 16))
