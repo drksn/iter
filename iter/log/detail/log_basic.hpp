@@ -1,5 +1,5 @@
-#ifndef ITER_LOG_BASE_IMPL_HPP
-#define ITER_LOG_BASE_IMPL_HPP
+#ifndef ITER_LOG_BASIC_HPP
+#define ITER_LOG_BASIC_HPP
 
 #include <sys/time.h>
 #include <sys/stat.h>
@@ -18,22 +18,7 @@ namespace iter {
 static const char LOG_LEVEL[][6] = {
     "DEBUG", "INFO", "WARN", "ERROR", "FATAL"};
 
-LogBase* LogBase::GetInstance() {
-    static LogBase log_base;
-    return &log_base;
-}
-
-void LogBase::Init(
-        const char* log_path, const char* log_prefix = "iter") {
-    std::string log_name = std::string(log_path) + "/" + log_prefix + ".log";
-    log_printer.Init(log_name);
-}
-
-void LogBase::Print(const std::string& log_str) {
-    log_printer.Print(log_str);
-}
-
-std::string LogBase::GetTimestamp() {
+static std::string LogTimestamp() {
     struct timeval tv;
     struct timezone tz;
     gettimeofday(&tv,&tz);
@@ -47,12 +32,12 @@ std::string LogBase::GetTimestamp() {
     return buf;
 }
 
-std::string LogBase::LogHead(
+static std::string LogHead(
         const int& lv, const char* filename,
         const int& line, const char* function) {
     std::stringstream ss;
     ss << "[" << LOG_LEVEL[lv] << "]";
-    ss << "[" << GetTimestamp() << "]";
+    ss << "[" << LogTimestamp() << "]";
     ss << "[" << std::this_thread::get_id() << "]";
     ss << "[" << filename << ":" << line << "]";
     ss << "[" << function << "]";
@@ -61,4 +46,4 @@ std::string LogBase::LogHead(
 
 } // namespace iter
 
-#endif // ITER_LOG_BASE_IMPL_HPP
+#endif // ITER_LOG_BASIC_HPP

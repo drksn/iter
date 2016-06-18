@@ -1,5 +1,5 @@
-#ifndef ITER_LOG_PRINTER_HPP
-#define ITER_LOG_PRINTER_HPP
+#ifndef ITER_LOGGER_HPP
+#define ITER_LOGGER_HPP
 
 #include <cstdint>
 #include <cstdio>
@@ -8,25 +8,27 @@
 
 namespace iter {
 
-class LogPrinter{
+class Logger{
 public:
-    LogPrinter();
-    ~LogPrinter();
+    Logger();
+    ~Logger();
     bool Init(const std::string& filename);
     void Print(const std::string& log_str);
 
 private:
     uint64_t GetFileNode();
     bool OpenFile();
+    void CloseFile();
+    void WriteFile(const std::string& log_str);
 
-    FILE* ptr_;
+    int fd_;
+    uint64_t inode_;
     std::string filename_;
     std::mutex mtx_;
-    uint64_t file_node_;
 };
 
 } // namespace iter
 
-#include <iter/log/detail/log_printer_impl.hpp>
+#include <iter/log/detail/logger_impl.hpp>
 
-#endif // ITER_LOG_PRINTER_HPP
+#endif // ITER_LOGGER_HPP
