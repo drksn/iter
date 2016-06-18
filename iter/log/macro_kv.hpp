@@ -1,7 +1,7 @@
 #ifndef ITER_MACRO_KV_HPP
 #define ITER_MACRO_KV_HPP
 
-#include <iter/log/macro_base.hpp>
+#include <iter/log/macro_basic.hpp>
 #include <iter/util/kvstr.hpp>
 
 #ifndef MSG
@@ -13,12 +13,8 @@
 #endif // ITER_LOG_DISABLE
 
 #ifndef ITER_LOG_KV
-#define ITER_LOG_KV(log_level, log_arg...)                          \
-    do {                                                            \
-        ITER_LOG_WRITE(                                             \
-            ITER_LOG_HEAD(log_level) + " " + iter::KvStr(log_arg)   \
-        );                                                          \
-    } while (0);
+#define ITER_LOG_KV(log_level, log_arg...) \
+    ITER_LOG_WRITE(ITER_LOG_HEAD(log_level) + " " + iter::KvStr(log_arg));
 #endif // ITER_LOG_KV
 
 #ifndef ITER_DEBUG_KV
