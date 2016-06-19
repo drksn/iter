@@ -1,7 +1,7 @@
 # ITER #
 An c++ library consist of some exquisite components to make things easy.
 ## Requirements ##
-1. Cpp: --std=c++11
+1. G++: --std=c++11
 2. Linux kernel: > 2.6
 
 ## Log setting ##
