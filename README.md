@@ -13,7 +13,10 @@ ITER_LOG_INIT("./iter.log");
 All of the logs will print to the file ```"./iter.log"```. If not, the logs will print to ```stderr```. 
 
 ## Components ##
-### 1. FileKeeper ###
+* [FileKeeper](https://github.com/qianyl/iter#filekeeper)
+* [Link](https://github.com/qianyl/iter#link)
+
+### FileKeeper ###
 ---
 ```FileKeeper``` using double buffer for hot loading, and it will parse the file to your custom structures automatically.
 
@@ -110,7 +113,7 @@ virtual bool Load();
 ```
 ```Load()``` will be called by ```FileLoaderManager``` for auto loading.
 
-### 2. Link ###
+### Link ###
 ---
 If we have some functors F1, F2, ..., Fn:
 ```cpp
