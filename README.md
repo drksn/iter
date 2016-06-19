@@ -1,10 +1,10 @@
 # ITER #
 An c++ library consist of some exquisite components to make things easy.
-## 1 Requirements ##
+## Requirements ##
 1. G++: --std=c++11
 2. Linux kernel: > 2.6
 
-## 2 Log setting ##
+## Log setting ##
 Some components might print logs, if you set:
 ```
 ITER_LOG_INIT("./iter.log");
@@ -12,8 +12,9 @@ ITER_LOG_INIT("./iter.log");
 
 All of the logs will print to the file ```"./iter.log"```. If not, the logs will print to ```stderr```. 
 
-## 3 Components ##
-### 3.1 FileKeeper ###
+## Components ##
+### 1. FileKeeper ###
+---
 ```FileKeeper``` using double buffer for hot loading, and it will parse the file to your custom structures automatically.
 
   During construction, ```FileKeeper```will register to a singleton```FileLoaderManager```, and during deconstruction, it will deregister from ```FileLoaderManager```.
@@ -22,7 +23,7 @@ All of the logs will print to the file ```"./iter.log"```. If not, the logs will
 
 When modification events occur, the registered ```FileKeeper``` will reload immediatelly.
 
-#### 3.1.1 Definition ####
+#### Definition ####
 ```cpp
 template <class LoadFunc, class Buffer> class FileKeeper;
 ```
@@ -51,7 +52,13 @@ typedef std::function <bool(const std::string&, Buffer&)> SampleLoadFunc;
 ```
 Both ```FileReader``` and ```SampleLoadFunc``` are acceptable.
 
-#### 3.1.2 Member functions ####
+#### Member functions ####
+| Member function | Description |
+| -- | -- |
+| [(constructor)](https://github.com/qianyl/iter#constructor) | Construct function. |
+| [GetBuffer](https://github.com/qianyl/iter#GetBuffer) | Get the shared pointer of buffer. |
+| [Load](https://github.com/qianyl/iter#Load) | Load data. |
+
 ##### (Constructor) #####
 ```cpp
 FileKeeper(const std::string& filename);
@@ -103,7 +110,8 @@ virtual bool Load();
 ```
 ```Load()``` will be called by ```FileLoaderManager``` for auto loading.
 
-### 3.2 Link ###
+### 2. Link ###
+---
 If we have some functors F1, F2, ..., Fn:
 ```cpp
 F1: bool operator () (A0, A1&);
@@ -131,17 +139,22 @@ Is equal to:
 ```cpp
 link(a0, an); // <=> do(a0, an)
 ```
-#### 3.2.1 Definition ####
+#### Definition ####
 ```cpp
 template <class First, class ...Functor> class Link;
 ```
-#### 3.2.2 Member types ####
+#### Member types ####
 | member type | definition |
 | -- | -- |
 | result_type | bool |
 | first_argument_type | First::first_argument_type |
 | second_argument_type | Link <...Functors>::second_argument_type |
-#### 3.2.3 Member functions ####
+
+#### Member functions ####
+| Member function | Description |
+| -- | -- |
+| [(constructor)](https://github.com/qianyl/iter#constructor-1) | Construct function. |
+| [operator ()](https://github.com/qianyl/iter#operator-1) | Call target. |
 ##### (Constructor) #####
 ```cpp
 template <class FirstInit, class ...Types>
@@ -157,7 +170,6 @@ new Link <...Functor> (args...);
 template <class Source, class Target>
 bool operator () (Source&& source, Target&& target);
 ```
-
 
 
 
