@@ -54,10 +54,10 @@ Both ```FileReader``` and ```SampleLoadFunc``` are acceptable.
 
 #### Member functions ####
 | Member function | Description |
-| -- | -- |
+| ------ | ------ |
 | [(constructor)](https://github.com/qianyl/iter#constructor) | Construct function. |
-| [GetBuffer](https://github.com/qianyl/iter#GetBuffer) | Get the shared pointer of buffer. |
-| [Load](https://github.com/qianyl/iter#Load) | Load data. |
+| [GetBuffer](https://github.com/qianyl/iter#getbuffer) | Get the shared pointer of buffer. |
+| [Load](https://github.com/qianyl/iter#load) | Load data. |
 
 ##### (Constructor) #####
 ```cpp
@@ -145,16 +145,16 @@ template <class First, class ...Functor> class Link;
 ```
 #### Member types ####
 | member type | definition |
-| -- | -- |
+| ------ | ------ |
 | result_type | bool |
 | first_argument_type | First::first_argument_type |
 | second_argument_type | Link <...Functors>::second_argument_type |
 
 #### Member functions ####
 | Member function | Description |
-| -- | -- |
+| ------ | ------ |
 | [(constructor)](https://github.com/qianyl/iter#constructor-1) | Construct function. |
-| [operator ()](https://github.com/qianyl/iter#operator-1) | Call target. |
+| [operator ()](https://github.com/qianyl/iter#operator-) | Call target. |
 ##### (Constructor) #####
 ```cpp
 template <class FirstInit, class ...Types>
