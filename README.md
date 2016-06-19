@@ -1,36 +1,28 @@
 # ITER #
 An c++ library consist of some exquisite components to make things easy.
-## Requirements ##
+## 1 Requirements ##
 1. G++: --std=c++11
 2. Linux kernel: > 2.6
 
-## Log setting ##
-Some components will print logs.
-
-If you set
+## 2 Log setting ##
+Some components might print logs, if you set:
 ```
 ITER_LOG_INIT("./iter.log");
 ```
 
-All of the logs will print to the file ```"./iter.log"```.
+All of the logs will print to the file ```"./iter.log"```. If not, the logs will print to ```stderr```. 
 
-If not, the logs will print to ```stderr```. 
-
-## Components list ##
-* FileKeeper
-* Link
-
-## FileKeeper ##
-
+## 3 Components ##
+### 3.1 FileKeeper ###
 ```FileKeeper``` using double buffer for hot loading, and it will parse the file to your custom structures automatically.
 
-During construction, ```FileKeeper```will register to a singleton```FileLoaderManager```, and during deconstruction, it will deregister from ```FileLoaderManager```.
+  During construction, ```FileKeeper```will register to a singleton```FileLoaderManager```, and during deconstruction, it will deregister from ```FileLoaderManager```.
 
 ```FileLoaderManager``` will raise a watcher thread and using ```inotify``` to listen the file modification events.
 
 When modification events occur, the registered ```FileKeeper``` will reload immediatelly.
 
-### Definition ###
+#### 3.1.1 Definition ####
 ```cpp
 template <class LoadFunc, class Buffer> class FileKeeper;
 ```
@@ -59,8 +51,8 @@ typedef std::function <bool(const std::string&, Buffer&)> SampleLoadFunc;
 ```
 Both ```FileReader``` and ```SampleLoadFunc``` are acceptable.
 
-### Member functions ###
-#### (Constructor) ####
+#### 3.1.2 Member functions ####
+##### (Constructor) #####
 ```cpp
 FileKeeper(const std::string& filename);
 ```
@@ -93,7 +85,7 @@ FileKeeper <FileReader> file_keeper("test.txt");
 FileKeeper <SampleLoadFunc> file_keeper("test.txt", read_file, "");
 ```
 
-#### GetBuffer ####
+##### GetBuffer #####
 ```cpp
 bool GetBuffer(std::shared_ptr <Buffer>* ptr);
 ```
@@ -105,13 +97,13 @@ So, by calling ```std::shared_ptr::unique()```, we can know whether the buffer i
 
 If the buffer is not the latest and released by all users, ```FileKeeper``` will release this buffer for the coming new data.
 
-#### Load ####
+##### Load #####
 ```cpp
 virtual bool Load();
 ```
 ```Load()``` will be called by ```FileLoaderManager``` for auto loading.
 
-## Link ##
+### 3.2 Link ###
 If we have some functors F1, F2, ..., Fn:
 ```cpp
 F1: bool operator () (A0, A1&);
@@ -139,18 +131,18 @@ Is equal to:
 ```cpp
 link(a0, an); // <=> do(a0, an)
 ```
-### Definition ###
+#### 3.2.1 Definition ####
 ```cpp
 template <class First, class ...Functor> class Link;
 ```
-### Member types ###
+#### 3.2.2 Member types ####
 | member type | definition |
 | -- | -- |
 | result_type | bool |
 | first_argument_type | First::first_argument_type |
 | second_argument_type | Link <...Functors>::second_argument_type |
-### Member functions ###
-#### (Constructor) ####
+#### 3.2.3 Member functions ####
+##### (Constructor) #####
 ```cpp
 template <class FirstInit, class ...Types>
 Link(FirstInit&& first_init, Types&& ...args);
@@ -160,7 +152,7 @@ Possible behavior:
 new First(first_init);
 new Link <...Functor> (args...);
 ```
-#### operator () ####
+##### operator () #####
 ```cpp
 template <class Source, class Target>
 bool operator () (Source&& source, Target&& target);
