@@ -17,8 +17,8 @@ using namespace iter;
 
 class AddStar {
 public:
-    typedef std::string first_argument_type;
-    typedef std::string second_argument_type;
+    typedef const std::string& first_argument_type;
+    typedef std::string& second_argument_type;
 
     AddStar(const std::string& star = "*"):star_(star){}
 
@@ -67,14 +67,14 @@ TEST(LinkTest, InitTest) {
 TEST(LinkTest, FunctionTest) {
     Link <AddStar, BSS> a4("@", addone);
     Link <BSS, AddStar> a5(addone);
-    Link <BSS, BSS> a6(addone, addone);
+    Link <BSS, BSS, AddStar> a6(addone, addone);
     std::string star = "CountingStar:", s4, s5, s6;
     a4(star, s4);
     a5(star, s5);
     a6(star, s6);
     EXPECT_EQ(s4, "CountingStar:@1");
     EXPECT_EQ(s5, "CountingStar:1*");
-    EXPECT_EQ(s6, "CountingStar:11");
+    EXPECT_EQ(s6, "CountingStar:11*");
 
     Link <BSS> func(addone);
     std::string sf;

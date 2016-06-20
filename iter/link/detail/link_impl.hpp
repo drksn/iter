@@ -30,10 +30,12 @@ bool Link <First, Functor...>::operator () (
         Source&& source, Target&& target) {
     typename std::remove_reference <typename First::second_argument_type>::type mid;
     bool first_ret = (*first_ptr_)(
-        std::forward <Source> (source), mid);
+        std::forward <Source> (source),
+        std::forward <typename First::second_argument_type> (mid));
     if (!first_ret) return false;
     bool second_ret = (*second_ptr_)(
-        std::move(mid), target);
+        std::forward <typename Second::first_argument_type> (mid),
+        std::forward <Target> (target));
     return second_ret;
 }
 
@@ -47,7 +49,9 @@ Link <First>::Link(Types&& ...args) {
 template <class First>
 template <class Source, class Target>
 bool Link <First>::operator () (Source&& source, Target&& target) {
-     return (*first_ptr_)(source, target);
+     return (*first_ptr_)(
+            std::forward <Source> (source),
+            std::forward <Target> (target));
 }
 
 } // namespace iter
