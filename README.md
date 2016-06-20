@@ -232,8 +232,8 @@ bool operator () (Source&& source, Target&& target);
 
 class AddStar {
 public:
-    typedef std::string first_argument_type;
-    typedef std::string second_argument_type;
+    typedef const std::string& first_argument_type;
+    typedef std::string& second_argument_type;
 
     AddStar(const std::string& star = "*"):star_(star){}
 
@@ -257,7 +257,7 @@ int main() {
     iter::Link <AddStar> l1("@");
     iter::Link <AddStar, AddStar> l2;
     iter::Link <FuncBSS, FuncBSS> l3(add_one, add_one);
-    iter::Link <FuncBSS, AddStar, AddStar> l4(add_one, "@");
+    iter::Link <FuncBSS, FuncBSS, AddStar> l4(add_one, add_one, "@");
 
     std::string star = "CountingStar:", result;
     bool ret1 = l1(star, result);
@@ -276,7 +276,7 @@ stdout:
 Result = CountingStar:@
 Result = CountingStar:**
 Result = CountingStar:11
-Result = CountingStar:1@*
+Result = CountingStar:11@
 ```
 
 
