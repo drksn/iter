@@ -13,8 +13,8 @@ ITER_LOG_INIT("./iter.log");
 All of the logs will print to the file ```"./iter.log"```. If not, the logs will print to ```stderr```. 
 
 ## Components ##
-* [FileKeeper](https://github.com/qianyl/iter#filekeeper)
-* [Link](https://github.com/qianyl/iter#link)
+* [FileKeeper](https://github.com/qianyl/iter#iterfilekeeper)
+* [Link](https://github.com/qianyl/iter#iterlink)
 
 ### iter::FileKeeper ###
 ---
@@ -58,9 +58,9 @@ Both ```FileReader``` and ```SampleLoadFunc``` are acceptable.
 #### Member functions ####
 | Member function | Description |
 | ------ | ------ |
-| [(constructor)](https://github.com/qianyl/iter#constructor) | Construct function. |
-| [GetBuffer](https://github.com/qianyl/iter#getbuffer) | Get the shared pointer of buffer. |
-| [Load](https://github.com/qianyl/iter#load) | Load data. |
+| [(constructor)](https://github.com/qianyl/iter#iterfilekeeperfilekeeper) | Construct function. |
+| [GetBuffer](https://github.com/qianyl/iter#iterfilekeepergetbuffer) | Get the shared pointer of buffer. |
+| [Load](https://github.com/qianyl/iter#iterfilekeeperload) | Load data. |
 
 ##### iter::FileKeeper::FileKeeper #####
 ```cpp
@@ -205,8 +205,8 @@ template <class First, class ...Functor> class Link;
 #### Member functions ####
 | Member function | Description |
 | ------ | ------ |
-| [(constructor)](https://github.com/qianyl/iter#constructor-1) | Construct function. |
-| [operator ()](https://github.com/qianyl/iter#operator-) | Call target. |
+| [(constructor)](https://github.com/qianyl/iter#iterlinklink) | Construct function. |
+| [operator ()](https://github.com/qianyl/iter#iterlinkoperator-) | Call target. |
 ##### iter::Link::Link #####
 ```cpp
 template <class FirstInit, class ...Types>
