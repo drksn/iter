@@ -1,7 +1,7 @@
 # ITER #
 An c++ library consist of some exquisite components to make things easy.
 ## Requirements ##
-1. G++: --std=c++11
+1. G++: --std=c++11 -pthread
 2. Linux kernel: > 2.6
 
 ## Log setting ##
@@ -16,7 +16,7 @@ All of the logs will print to the file ```"./iter.log"```. If not, the logs will
 * [FileKeeper](https://github.com/qianyl/iter#filekeeper)
 * [Link](https://github.com/qianyl/iter#link)
 
-### FileKeeper ###
+### iter::FileKeeper ###
 ---
 ```FileKeeper``` using double buffer for hot loading, and it will parse the file to your custom structures automatically.
 
@@ -62,7 +62,7 @@ Both ```FileReader``` and ```SampleLoadFunc``` are acceptable.
 | [GetBuffer](https://github.com/qianyl/iter#getbuffer) | Get the shared pointer of buffer. |
 | [Load](https://github.com/qianyl/iter#load) | Load data. |
 
-##### (Constructor) #####
+##### iter::FileKeeper::FileKeeper #####
 ```cpp
 FileKeeper(const std::string& filename);
 ```
@@ -95,7 +95,7 @@ FileKeeper <FileReader> file_keeper("test.txt");
 FileKeeper <SampleLoadFunc> file_keeper("test.txt", read_file, "");
 ```
 
-##### GetBuffer #####
+##### iter::FileKeeper::GetBuffer #####
 ```cpp
 bool GetBuffer(std::shared_ptr <Buffer>* ptr);
 ```
@@ -107,13 +107,62 @@ So, by calling ```std::shared_ptr::unique()```, we can know whether the buffer i
 
 If the buffer is not the latest and released by all users, ```FileKeeper``` will release this buffer for the coming new data.
 
-##### Load #####
+##### iter::FileKeeper::Load #####
 ```cpp
 virtual bool Load();
 ```
 ```Load()``` will be called by ```FileLoaderManager``` for auto loading.
 
-### Link ###
+#### Example ####
+```cpp
+#include <iter/file_io.hpp>
+#include <iter/file_keeper.hpp>
+#include <iostream>
+#include <string>
+#include <memory>
+#include <thread>
+#include <chrono>
+
+int main() {
+    std::string filename = "file_keeper.test";
+    std::string text = "File keeper test.";
+    bool write_ret = iter::FileWriter()(text, filename);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+    iter::FileKeeper <iter::FileReader> file_keeper(filename);
+    std::shared_ptr <std::string> ptr;
+    bool get_ret = file_keeper.GetBuffer(&ptr);
+    std::cout << "Get result = " << *ptr << std::endl;
+    ptr.reset();
+
+    std::string new_text = "File keeper modified.";
+    bool new_write_ret = iter::FileWriter()(new_text, filename);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+    bool new_get_ret = file_keeper.GetBuffer(&ptr);
+    std::cout << "Get result = " << *ptr << std::endl;
+
+    return 0;
+}
+
+```
+stdout:
+```
+Get result = File keeper test.
+Get result = File keeper modified.
+```
+
+stderr:
+```
+[INFO][2016-06-20T09:04:13.352+0800][140589651560320][../iter/iter/datamanager/detail/file_loader_manager_impl.hpp:23][FileLoaderManager] msg=FileLoaderManager thread start.||inotify_fd=3
+[INFO][2016-06-20T09:04:13.352+0800][140589651560320][../iter/iter/datamanager/detail/file_loader_manager_impl.hpp:68][InsertFileLoader] msg=Insert success.||watcher_fd=1||filename=file_keeper.test
+[INFO][2016-06-20T09:04:13.353+0800][140589651560320][../iter/iter/datamanager/detail/file_keeper_impl.hpp:51][FileKeeper] msg=Load success.||filename=file_keeper.test
+[INFO][2016-06-20T09:04:13.354+0800][140589634737920][../iter/iter/datamanager/detail/file_loader_manager_impl.hpp:144][Callback] msg=Auto load success.||filename=file_keeper.test||event=2
+[INFO][2016-06-20T09:04:13.454+0800][140589651560320][../iter/iter/datamanager/detail/file_loader_manager_impl.hpp:90][DeleteFileLoader] msg=Delete success.||watcher_fd=1||filename=file_keeper.test
+[INFO][2016-06-20T09:04:13.454+0800][140589651560320][../iter/iter/datamanager/detail/file_loader_manager_impl.hpp:31][~FileLoaderManager] msg=FileLoaderManager thread stop.||inotify_fd=3
+```
+
+### iter::Link ###
 ---
 If we have some functors F1, F2, ..., Fn:
 ```cpp
@@ -158,7 +207,7 @@ template <class First, class ...Functor> class Link;
 | ------ | ------ |
 | [(constructor)](https://github.com/qianyl/iter#constructor-1) | Construct function. |
 | [operator ()](https://github.com/qianyl/iter#operator-) | Call target. |
-##### (Constructor) #####
+##### iter::Link::Link #####
 ```cpp
 template <class FirstInit, class ...Types>
 Link(FirstInit&& first_init, Types&& ...args);
@@ -168,14 +217,67 @@ Possible behavior:
 new First(first_init);
 new Link <...Functor> (args...);
 ```
-##### operator () #####
+##### iter::Link::operator () #####
 ```cpp
 template <class Source, class Target>
 bool operator () (Source&& source, Target&& target);
 ```
 
+#### Example ####
+```cpp
+#include <iter/link.hpp>
+#include <iostream>
+#include <string>
+#include <functional>
 
+class AddStar {
+public:
+    typedef std::string first_argument_type;
+    typedef std::string second_argument_type;
 
+    AddStar(const std::string& star = "*"):star_(star){}
+
+    bool operator () (const std::string& a, std::string& b) {
+        b = a + star_;
+        return true;
+    }
+
+private:
+    std::string star_;
+};
+
+bool add_one(std::string& a, std::string& b) {
+    b = a + "1";
+    return true;
+}
+
+typedef std::function <bool(std::string&, std::string&)> FuncBSS;
+
+int main() {
+    iter::Link <AddStar> l1("@");
+    iter::Link <AddStar, AddStar> l2;
+    iter::Link <FuncBSS, FuncBSS> l3(add_one, add_one);
+    iter::Link <FuncBSS, AddStar, AddStar> l4(add_one, "@");
+
+    std::string star = "CountingStar:", result;
+    bool ret1 = l1(star, result);
+    std::cout << "Result = " << result << std::endl;
+    bool ret2 = l2(star, result);
+    std::cout << "Result = " << result << std::endl;
+    bool ret3 = l3(star, result);
+    std::cout << "Result = " << result << std::endl;
+    bool ret4 = l4(star, result);
+    std::cout << "Result = " << result << std::endl;
+    return 0;
+}
+```
+stdout:
+```
+Result = CountingStar:@
+Result = CountingStar:**
+Result = CountingStar:11
+Result = CountingStar:1@*
+```
 
 
 
