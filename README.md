@@ -154,12 +154,12 @@ Get result = File keeper modified.
 
 stderr:
 ```
-[INFO][2016-06-20T09:04:13.352+0800][140589651560320][../iter/iter/datamanager/detail/file_loader_manager_impl.hpp:23][FileLoaderManager] msg=FileLoaderManager thread start.||inotify_fd=3
-[INFO][2016-06-20T09:04:13.352+0800][140589651560320][../iter/iter/datamanager/detail/file_loader_manager_impl.hpp:68][InsertFileLoader] msg=Insert success.||watcher_fd=1||filename=file_keeper.test
-[INFO][2016-06-20T09:04:13.353+0800][140589651560320][../iter/iter/datamanager/detail/file_keeper_impl.hpp:51][FileKeeper] msg=Load success.||filename=file_keeper.test
-[INFO][2016-06-20T09:04:13.354+0800][140589634737920][../iter/iter/datamanager/detail/file_loader_manager_impl.hpp:144][Callback] msg=Auto load success.||filename=file_keeper.test||event=2
-[INFO][2016-06-20T09:04:13.454+0800][140589651560320][../iter/iter/datamanager/detail/file_loader_manager_impl.hpp:90][DeleteFileLoader] msg=Delete success.||watcher_fd=1||filename=file_keeper.test
-[INFO][2016-06-20T09:04:13.454+0800][140589651560320][../iter/iter/datamanager/detail/file_loader_manager_impl.hpp:31][~FileLoaderManager] msg=FileLoaderManager thread stop.||inotify_fd=3
+[INFO][2016-06-21T10:22:46.495+0800][140406254540672][../iter/iter/datamanager/detail/file_loader_manager_impl.hpp:23][FileLoaderManager] msg=Thread start.||inotify_fd=3
+[INFO][2016-06-21T10:22:46.495+0800][140406254540672][../iter/iter/datamanager/detail/file_loader_manager_impl.hpp:64][InsertFileLoader] msg=Initial load success.||filename=file_keeper.test
+[INFO][2016-06-21T10:22:46.495+0800][140406254540672][../iter/iter/datamanager/detail/file_loader_manager_impl.hpp:79][InsertFileLoader] msg=Insert success.||watcher_fd=1||filename=file_keeper.test
+[INFO][2016-06-21T10:22:46.496+0800][140406237718272][../iter/iter/datamanager/detail/file_loader_manager_impl.hpp:156][Callback] msg=Auto load success.||filename=file_keeper.test||event=2
+[INFO][2016-06-21T10:22:46.595+0800][140406254540672][../iter/iter/datamanager/detail/file_loader_manager_impl.hpp:101][DeleteFileLoader] msg=Delete success.||watcher_fd=1||filename=file_keeper.test
+[INFO][2016-06-21T10:22:46.596+0800][140406254540672][../iter/iter/datamanager/detail/file_loader_manager_impl.hpp:31][~FileLoaderManager] msg=Thread stop.||inotify_fd=3
 ```
 
 ### iter::Link ###
