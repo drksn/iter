@@ -136,7 +136,8 @@ void FileLoaderManager::Callback() {
                 if (!load_ret) {
                     ITER_WARN_KV(
                         MSG("Auto load failed."),
-                        KV("filename", node.filename), KV("event", event->mask));                    }
+                        KV("filename", node.filename), KV("event", event->mask));
+                }
                 else {
                     ITER_INFO_KV(
                         MSG("Auto load success."),
