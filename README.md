@@ -36,7 +36,7 @@ The second template argument ```Buffer``` is your target type to store your data
 For example, if you want to load some dictionary, ```Buffer``` might be ```std::map <std::string, int>``` or your own type.
 
 
-The first template argument ```LoadFunc``` is the type of your load-functor, indicate the way to load data into your ```Buffer```,
+The first template argument ```LoadFunc``` is the type of your load-functor, indicate the way to load data into your ```Buffer```.
 
 The ```LoadFunc``` must defined:
 ```cpp
