@@ -53,17 +53,6 @@ void FileLoaderManager::InsertFileLoader(
             KV(filename));
     }
 
-    // Initial load.
-    bool load_ret = loader_ptr->Load();
-    if (!load_ret) {
-        ITER_WARN_KV(
-            MSG("Initial load failed."), KV("filename", filename));
-    }
-    else {
-        ITER_INFO_KV(
-            MSG("Initial load success."), KV("filename", filename));
-    }
-
     std::lock_guard <std::mutex> lck(mtx_);
     int watcher_fd = inotify_add_watch(
         inotify_fd_, filename.c_str(), ITER_INOTIFY_MASK);
@@ -143,18 +132,15 @@ void FileLoaderManager::Callback() {
                     DeleteFileLoader(node.loader_ptr, node.filename);
                     InsertFileLoader(node.loader_ptr, node.filename);
                 }
+                bool load_ret = node.loader_ptr->Load();
+                if (!load_ret) {
+                    ITER_WARN_KV(
+                        MSG("Auto load failed."),
+                        KV("filename", node.filename), KV("event", event->mask));                    }
                 else {
-                    bool load_ret = node.loader_ptr->Load();
-                    if (!load_ret) {
-                        ITER_WARN_KV(
-                            MSG("Auto load failed."),
-                            KV("filename", node.filename), KV("event", event->mask));
-                    }
-                    else {
-                        ITER_INFO_KV(
-                            MSG("Auto load success."),
-                            KV("filename", node.filename), KV("event", event->mask));
-                    }
+                    ITER_INFO_KV(
+                        MSG("Auto load success."),
+                        KV("filename", node.filename), KV("event", event->mask));
                 }
             }
             i += ITER_INOTIFY_EVENT_SIZE + event->len;
