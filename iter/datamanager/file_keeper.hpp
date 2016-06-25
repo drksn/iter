@@ -30,6 +30,7 @@ public:
 
 private:
     typedef DoubleBuffer <Buffer> BufferMgr;
+    void InitialLoad();
 
     std::string filename_;
     std::unique_ptr <BufferMgr> buffer_mgr_ptr_;

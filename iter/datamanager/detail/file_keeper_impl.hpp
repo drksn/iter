@@ -1,7 +1,8 @@
 #ifndef ITER_FILE_KEEPER_IMPL_HPP
 #define ITER_FILE_KEEPER_IMPL_HPP
 
-#include <iter/datamanager/detail/file_loader_manager.hpp>
+#include <iter/datamanager/file_loader_manager.hpp>
+#include <iter/log.hpp>
 #include <string>
 #include <memory>
 #include <utility>
@@ -22,7 +23,9 @@ FileKeeper <LoadFunc, Buffer>::FileKeeper(const std::string& filename,
         new LoadFunc(std::forward <LoadFuncInit> (load_func_init)));
     buffer_mgr_ptr_ = std::unique_ptr <BufferMgr> (
         new BufferMgr(std::forward <Types> (args)...));
+
     FileLoaderManager::GetInstance()->InsertFileLoader(this, filename);
+    InitialLoad();
 }
 
 template <class LoadFunc, class Buffer>
@@ -32,7 +35,9 @@ FileKeeper <LoadFunc, Buffer>::FileKeeper(
     filename_ = filename;
     load_func_ptr_ = std::unique_ptr <LoadFunc> (new LoadFunc(args...));
     buffer_mgr_ptr_ = std::unique_ptr <BufferMgr> (new BufferMgr(args...));
+
     FileLoaderManager::GetInstance()->InsertFileLoader(this, filename);
+    InitialLoad();
 }
 
 template <class LoadFunc, class Buffer>
@@ -50,6 +55,18 @@ bool FileKeeper <LoadFunc, Buffer>::Load() {
     if (!load_ret) return false;
     buffer_mgr_ptr_->SwapBuffer();
     return true;
+}
+
+template <class LoadFunc, class Buffer>
+void FileKeeper <LoadFunc, Buffer>::InitialLoad() {
+    if (Load()) {
+        ITER_INFO_KV(MSG("Initial load success."),
+            KV("filename", filename_));
+    }
+    else {
+        ITER_WARN_KV(MSG("Initial load failed."),
+            KV("filename", filename_));
+    }
 }
 
 } // namespace iter

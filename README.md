@@ -5,12 +5,13 @@ An c++ library consist of some exquisite components to make things easy.
 2. Linux kernel: > 2.6
 
 ## Log setting ##
-Some components might print logs, if you set:
+Some components might print logs, if you add:
 ```
 ITER_LOG_INIT("./iter.log");
 ```
+In your code.
 
-All of the logs will print to the file ```"./iter.log"```. If not, the logs will print to ```stderr```. 
+All of the log will be redirectied to the file ```"./iter.log"```. If not, the log will be printed to ```stderr```. 
 
 ## Components ##
 * [FileKeeper](https://github.com/qianyl/iter#iterfilekeeper)
@@ -20,7 +21,7 @@ All of the logs will print to the file ```"./iter.log"```. If not, the logs will
 ---
 ```FileKeeper``` using double buffer for hot loading, and it will parse the file to your custom structures automatically.
 
-  During construction, ```FileKeeper```will register to a singleton```FileLoaderManager```, and during deconstruction, it will deregister from ```FileLoaderManager```.
+During initialization, ```FileKeeper```will register to a singleton```FileLoaderManager```, and during deconstruction, it will deregister from ```FileLoaderManager```.
 
 ```FileLoaderManager``` will raise a watcher thread and using ```inotify``` to listen the file modification events.
 
@@ -30,12 +31,14 @@ When modification events occur, the registered ```FileKeeper``` will reload imme
 ```cpp
 template <class LoadFunc, class Buffer> class FileKeeper;
 ```
-The second template argument ```Buffer``` is your target type. 
+The second template argument ```Buffer``` is your target type to store your data. 
 
 For example, if you want to load some dictionary, ```Buffer``` might be ```std::map <std::string, int>``` or your own type.
 
 
-The first template argument ```LoadFunc``` is the type of your load functor, which have defined:
+The first template argument ```LoadFunc``` is the type of your load-functor, indicate the way to load data into your ```Buffer```,
+
+The ```LoadFunc``` must defined:
 ```cpp
 bool operator () (const std::string& filename, Buffer& buffer);
 ```
@@ -46,7 +49,7 @@ For example:
 class FileReader {
 public:
   typedef const std::string& first_argument_type;
-  typedef std::string& second_arguemt_type;
+  typedef std::string& second_argument_type;
   bool operator (first_argument_type filename, second_argument_type text);
 };
 ```
@@ -154,12 +157,12 @@ Get result = File keeper modified.
 
 stderr:
 ```
-[INFO][2016-06-21T10:22:46.495+0800][140406254540672][../iter/iter/datamanager/detail/file_loader_manager_impl.hpp:23][FileLoaderManager] msg=Thread start.||inotify_fd=3
-[INFO][2016-06-21T10:22:46.495+0800][140406254540672][../iter/iter/datamanager/detail/file_loader_manager_impl.hpp:64][InsertFileLoader] msg=Initial load success.||filename=file_keeper.test
-[INFO][2016-06-21T10:22:46.495+0800][140406254540672][../iter/iter/datamanager/detail/file_loader_manager_impl.hpp:79][InsertFileLoader] msg=Insert success.||watcher_fd=1||filename=file_keeper.test
-[INFO][2016-06-21T10:22:46.496+0800][140406237718272][../iter/iter/datamanager/detail/file_loader_manager_impl.hpp:156][Callback] msg=Auto load success.||filename=file_keeper.test||event=2
-[INFO][2016-06-21T10:22:46.595+0800][140406254540672][../iter/iter/datamanager/detail/file_loader_manager_impl.hpp:101][DeleteFileLoader] msg=Delete success.||watcher_fd=1||filename=file_keeper.test
-[INFO][2016-06-21T10:22:46.596+0800][140406254540672][../iter/iter/datamanager/detail/file_loader_manager_impl.hpp:31][~FileLoaderManager] msg=Thread stop.||inotify_fd=3
+[INFO][2016-06-25T15:06:54.698+0800][139745842657152][iter/datamanager/detail/file_loader_manager_impl.hpp:23][FileLoaderManager] msg=Thread start.||inotify_fd=3
+[INFO][2016-06-25T15:06:54.699+0800][139745842657152][iter/datamanager/detail/file_loader_manager_impl.hpp:68][InsertFileLoader] msg=Insert success.||watcher_fd=1||filename=file_keeper.test
+[INFO][2016-06-25T15:06:54.699+0800][139745842657152][iter/datamanager/detail/file_keeper_impl.hpp:64][InitialLoad] msg=Initial load success.||filename=file_keeper.test
+[INFO][2016-06-25T15:06:54.702+0800][139745825834752][iter/datamanager/detail/file_loader_manager_impl.hpp:143][Callback] msg=Auto load success.||filename=file_keeper.test||event=2
+[INFO][2016-06-25T15:06:54.802+0800][139745842657152][iter/datamanager/detail/file_loader_manager_impl.hpp:90][DeleteFileLoader] msg=Delete success.||watcher_fd=1||filename=file_keeper.test
+[INFO][2016-06-25T15:06:54.802+0800][139745842657152][iter/datamanager/detail/file_loader_manager_impl.hpp:31][~FileLoaderManager] msg=Thread stop.||inotify_fd=3
 ```
 
 ### iter::Link ###
