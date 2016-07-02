@@ -2,7 +2,6 @@
 #define ITER_FILE_KEEPER_HPP
 
 #include <iter/datamanager/double_buffer.hpp>
-#include <iter/datamanager/detail/loader.hpp>
 #include <string>
 #include <memory>
 #include <mutex>
@@ -12,7 +11,7 @@ namespace iter {
 
 template <class LoadFunc, class Buffer =
     typename std::remove_reference <typename LoadFunc::second_argument_type>::type>
-class FileKeeper : public Loader {
+class FileKeeper {
 public:
     ~FileKeeper();
 
@@ -24,18 +23,18 @@ public:
     FileKeeper(const std::string& filename, Types&& ...args);
 
     bool GetBuffer(std::shared_ptr <Buffer>* ptr);
-    // If the corresponding file is modified,
-    // another class FileLoaderManager will call this Load() automatically.
-    virtual bool Load();
 
 private:
-    typedef DoubleBuffer <Buffer> BufferMgr;
-    void InitialLoad();
+    void Init();
+    // If the corresponding file is modified,
+    // FileLoaderManager will call this function automatically.
+    bool Load();
 
+    typedef DoubleBuffer <Buffer> BufferMgr;
+    int watcher_fd_;
     std::string filename_;
     std::unique_ptr <BufferMgr> buffer_mgr_ptr_;
     std::unique_ptr <LoadFunc> load_func_ptr_;
-
     std::mutex mtx_;
 };
 

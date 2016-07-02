@@ -10,12 +10,12 @@ namespace iter {
 
 #ifndef ITER_LOG_INIT
 #define ITER_LOG_INIT(log_path) \
-    iter::logger.Init(log_path);
+    iter::logger.Init(log_path)
 #endif // ITER_LOG_INIT
 
 #ifndef ITER_LOG_WRITE
 #define ITER_LOG_WRITE(log_str) \
-    iter::logger.Print(log_str);
+    iter::logger.Print(log_str)
 #endif // ITER_LOG_WRITE
 
 #ifndef ITER_LOG_HEAD

@@ -2,16 +2,25 @@
 #define ITER_FILE_KEEPER_IMPL_HPP
 
 #include <iter/datamanager/file_loader_manager.hpp>
-#include <iter/log.hpp>
 #include <string>
 #include <memory>
 #include <utility>
+#include <functional>
 
 namespace iter {
 
 template <class LoadFunc, class Buffer>
 FileKeeper <LoadFunc, Buffer>::~FileKeeper() {
-    FileLoaderManager::GetInstance()->DeleteFileLoader(this, filename_);
+    FileLoaderManager::GetInstance()->DeleteFileLoader((void *)this, filename_);
+}
+
+template <class LoadFunc, class Buffer>
+void FileKeeper <LoadFunc, Buffer>::Init() {
+    std::function <bool()> loader(
+        std::bind(&iter::FileKeeper <LoadFunc, Buffer>::Load, this));
+    FileLoaderManager::GetInstance()->InsertFileLoader((void *)this, filename_, loader);
+    auto ret = FileLoaderManager::GetInstance()->PushTask(filename_, loader);
+    ret.get(); // Initial load.
 }
 
 template <class LoadFunc, class Buffer>
@@ -23,10 +32,8 @@ FileKeeper <LoadFunc, Buffer>::FileKeeper(const std::string& filename,
         new LoadFunc(std::forward <LoadFuncInit> (load_func_init)));
     buffer_mgr_ptr_ = std::unique_ptr <BufferMgr> (
         new BufferMgr(std::forward <Types> (args)...));
-
-    FileLoaderManager::GetInstance()->InsertFileLoader(this, filename);
-    InitialLoad();
-}
+    Init();
+ }
 
 template <class LoadFunc, class Buffer>
 template <class ...Types>
@@ -35,9 +42,7 @@ FileKeeper <LoadFunc, Buffer>::FileKeeper(
     filename_ = filename;
     load_func_ptr_ = std::unique_ptr <LoadFunc> (new LoadFunc(args...));
     buffer_mgr_ptr_ = std::unique_ptr <BufferMgr> (new BufferMgr(args...));
-
-    FileLoaderManager::GetInstance()->InsertFileLoader(this, filename);
-    InitialLoad();
+    Init();
 }
 
 template <class LoadFunc, class Buffer>
@@ -50,23 +55,12 @@ bool FileKeeper <LoadFunc, Buffer>::Load() {
     std::shared_ptr <Buffer> ptr;
     bool get_ret = buffer_mgr_ptr_->GetNextBuffer(&ptr); // NOTICE
     if (!get_ret) return false;
+
     std::lock_guard <std::mutex> lck(mtx_);
     bool load_ret = (*load_func_ptr_)(filename_, *ptr);
     if (!load_ret) return false;
     buffer_mgr_ptr_->SwapBuffer();
     return true;
-}
-
-template <class LoadFunc, class Buffer>
-void FileKeeper <LoadFunc, Buffer>::InitialLoad() {
-    if (Load()) {
-        ITER_INFO_KV(MSG("Initial load success."),
-            KV("filename", filename_));
-    }
-    else {
-        ITER_WARN_KV(MSG("Initial load failed."),
-            KV("filename", filename_));
-    }
 }
 
 } // namespace iter
