@@ -63,7 +63,6 @@ Both ```FileReader``` and ```SampleLoadFunc``` are acceptable.
 | ------ | ------ |
 | [(constructor)](https://github.com/qianyl/iter#iterfilekeeperfilekeeper) | Construct function. |
 | [GetBuffer](https://github.com/qianyl/iter#iterfilekeepergetbuffer) | Get the shared pointer of buffer. |
-| [Load](https://github.com/qianyl/iter#iterfilekeeperload) | Load data. |
 
 ##### iter::FileKeeper::FileKeeper #####
 ```cpp
@@ -110,12 +109,6 @@ So, by calling ```std::shared_ptr::unique()```, we can know whether the buffer i
 
 If the buffer is not the latest and released by all users, ```FileKeeper``` will release this buffer for the coming new data.
 
-##### iter::FileKeeper::Load #####
-```cpp
-virtual bool Load();
-```
-```Load()``` will be called by ```FileLoaderManager``` for auto loading.
-
 #### Example ####
 ```cpp
 #include <iter/file_io.hpp>
@@ -157,12 +150,11 @@ Get result = File keeper modified.
 
 stderr:
 ```
-[INFO][2016-06-25T15:06:54.698+0800][139745842657152][iter/datamanager/detail/file_loader_manager_impl.hpp:23][FileLoaderManager] msg=Thread start.||inotify_fd=3
-[INFO][2016-06-25T15:06:54.699+0800][139745842657152][iter/datamanager/detail/file_loader_manager_impl.hpp:68][InsertFileLoader] msg=Insert success.||watcher_fd=1||filename=file_keeper.test
-[INFO][2016-06-25T15:06:54.699+0800][139745842657152][iter/datamanager/detail/file_keeper_impl.hpp:64][InitialLoad] msg=Initial load success.||filename=file_keeper.test
-[INFO][2016-06-25T15:06:54.702+0800][139745825834752][iter/datamanager/detail/file_loader_manager_impl.hpp:143][Callback] msg=Auto load success.||filename=file_keeper.test||event=2
-[INFO][2016-06-25T15:06:54.802+0800][139745842657152][iter/datamanager/detail/file_loader_manager_impl.hpp:90][DeleteFileLoader] msg=Delete success.||watcher_fd=1||filename=file_keeper.test
-[INFO][2016-06-25T15:06:54.802+0800][139745842657152][iter/datamanager/detail/file_loader_manager_impl.hpp:31][~FileLoaderManager] msg=Thread stop.||inotify_fd=3
+[INFO][2016-07-02T23:31:40.224+0800] msg=Insert watcher success.||watcher_fd=1||filename=file_keeper.test
+[INFO][2016-07-02T23:31:40.224+0800] msg=Auto load success.||filename=file_keeper.test
+[INFO][2016-07-02T23:31:40.225+0800] msg=Event triggered.||filename=file_keeper.test||event_mask=2
+[INFO][2016-07-02T23:31:40.225+0800] msg=Auto load success.||filename=file_keeper.test
+[INFO][2016-07-02T23:31:40.326+0800] msg=Delete watcher success.||watcher_fd=1||filename=file_keeper.test
 ```
 
 ### iter::Link ###

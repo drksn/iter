@@ -1,13 +1,15 @@
 #ifndef ITER_FILE_LOADER_MANAGER_HPP
 #define ITER_FILE_LOADER_MANAGER_HPP
 
-#include <iter/datamanager/detail/loader.hpp>
+#include <iter/util/thread_pool.hpp>
+#include <functional>
+#include <future>
 #include <map>
+#include <memory>
 #include <mutex>
 #include <string>
-#include <thread>
-#include <memory>
 
+#define ITER_FILE_LOADER_MANAGER_THREAD_POOL_SIZE 5
 #define ITER_FILE_LOADER_MANAGER_SELECT_TIMEOUT_SEC 1
 #define ITER_INOTIFY_MASK       (IN_MODIFY | IN_DELETE_SELF | IN_MOVE_SELF)
 #define ITER_INOTIFY_EVENT_SIZE (sizeof(struct inotify_event))
@@ -18,29 +20,35 @@ namespace iter {
 class FileLoaderManager {
 public:
     static FileLoaderManager* GetInstance();
-    static bool IsDestructed();
-    void InsertFileLoader(Loader* loader_ptr, const std::string& filename);
-    void DeleteFileLoader(Loader* loader_ptr, const std::string& filename);
+
+    void InsertFileLoader(void* ptr, const std::string& filename,
+        const std::function <bool()>& loader);
+
+    void DeleteFileLoader(void* ptr, const std::string& filename);
+
+    std::future <bool> PushTask(const std::string& filename,
+        const std::function <bool()>& loader);
 
 private:
-    FileLoaderManager();
+    FileLoaderManager(size_t pool_size);
     ~FileLoaderManager();
-    void Callback();
+    void WatcherCallback();
 
     typedef struct {
-        Loader* loader_ptr;
+        void* ptr;
+        int watcher_fd;
         std::string filename;
+        std::function <bool()> loader;
     } Node;
 
-    // The key is watcher fd.
-    std::map <int, Node> file_map_;
-    // Loader_ptr -> watcher fd.
-    std::map <Loader*, int> loader_map_;
+    std::map <int, Node> watcher_map_; // The key is watcher fd.
+    std::map <void*, Node> ptr_map_;
 
-    int inotify_fd_;
-    std::shared_ptr <std::thread> thread_ptr_;
-    std::mutex mtx_;
     bool shutdown_;
+    size_t thread_pool_size_;
+    int inotify_fd_;
+    std::shared_ptr <ThreadPool> thread_pool_ptr_;
+    std::mutex mtx_;
 };
 
 } // namespace iter

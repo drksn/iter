@@ -11,7 +11,7 @@
 #ifndef ITER_LOG_FMT
 #define ITER_LOG_FMT(log_level, log_fmt, log_arg...)        \
     ITER_LOG_WRITE(iter::FmtStr("%s " log_fmt,              \
-        (ITER_LOG_HEAD(log_level)).c_str(), ##log_arg));
+        (ITER_LOG_HEAD(log_level)).c_str(), ##log_arg))
 #endif // ITER_LOG_FMT
 
 #ifndef ITER_DEBUG_FMT

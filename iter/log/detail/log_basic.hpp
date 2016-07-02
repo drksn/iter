@@ -38,9 +38,11 @@ static std::string LogHead(
     std::stringstream ss;
     ss << "[" << LOG_LEVEL[lv] << "]";
     ss << "[" << LogTimestamp() << "]";
+    /*
     ss << "[" << std::this_thread::get_id() << "]";
     ss << "[" << filename << ":" << line << "]";
     ss << "[" << function << "]";
+    */
     return ss.str();
 }
 
