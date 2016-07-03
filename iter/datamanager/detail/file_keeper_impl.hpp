@@ -1,7 +1,6 @@
 #ifndef ITER_FILE_KEEPER_IMPL_HPP
 #define ITER_FILE_KEEPER_IMPL_HPP
 
-#include <iter/datamanager/file_loader_manager.hpp>
 #include <string>
 #include <memory>
 #include <utility>
@@ -10,16 +9,11 @@
 namespace iter {
 
 template <class LoadFunc, class Buffer>
-FileKeeper <LoadFunc, Buffer>::~FileKeeper() {
-    FileLoaderManager::GetInstance()->DeleteFileLoader((void *)this, filename_);
-}
-
-template <class LoadFunc, class Buffer>
 void FileKeeper <LoadFunc, Buffer>::Init() {
     std::function <bool()> loader(
         std::bind(&iter::FileKeeper <LoadFunc, Buffer>::Load, this));
-    FileLoaderManager::GetInstance()->InsertFileLoader((void *)this, filename_, loader);
-    auto ret = FileLoaderManager::GetInstance()->PushTask(filename_, loader);
+    register_.Register(filename_, loader);
+    auto ret = register_.PushTask(filename_, loader);
     ret.get(); // Initial load.
 }
 

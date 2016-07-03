@@ -2,7 +2,7 @@
 An c++ library consist of some exquisite components to make things easy.
 ## Requirements ##
 1. G++: --std=c++11 -pthread
-2. Linux kernel: > 2.6
+2. Linux kernel: >= 2.6 (inotify)
 
 ## Log setting ##
 Some components might print logs, if you add:
@@ -150,11 +150,9 @@ Get result = File keeper modified.
 
 stderr:
 ```
-[INFO][2016-07-02T23:31:40.224+0800] msg=Insert watcher success.||watcher_fd=1||filename=file_keeper.test
-[INFO][2016-07-02T23:31:40.224+0800] msg=Auto load success.||filename=file_keeper.test
-[INFO][2016-07-02T23:31:40.225+0800] msg=Event triggered.||filename=file_keeper.test||event_mask=2
-[INFO][2016-07-02T23:31:40.225+0800] msg=Auto load success.||filename=file_keeper.test
-[INFO][2016-07-02T23:31:40.326+0800] msg=Delete watcher success.||watcher_fd=1||filename=file_keeper.test
+[INFO][2016-07-03T20:25:22.887+0800] msg=Auto load success.||filename=file_keeper.test
+[INFO][2016-07-03T20:25:22.888+0800] msg=Event triggered.||filename=file_keeper.test||event_mask=2
+[INFO][2016-07-03T20:25:22.888+0800] msg=Auto load success.||filename=file_keeper.test
 ```
 
 ### iter::Link ###
