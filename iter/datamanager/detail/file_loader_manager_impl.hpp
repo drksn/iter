@@ -52,7 +52,7 @@ FileLoaderManager* FileLoaderManager::GetInstance() {
     return &file_loader_manager;
 }
 
-void FileLoaderManager::InsertFileLoader(void* ptr, const std::string& filename,
+bool FileLoaderManager::InsertFileLoader(void* ptr, const std::string& filename,
         const std::function <bool()>& loader) {
     // If file not exist, touch a new empty file.
     struct stat f_stat;
@@ -68,34 +68,32 @@ void FileLoaderManager::InsertFileLoader(void* ptr, const std::string& filename,
     int watcher_fd = inotify_add_watch(
         inotify_fd_, filename.c_str(), ITER_INOTIFY_MASK);
     if (watcher_fd == -1) {
-        ITER_ERROR_KV(MSG("Add watcher failed."), KV(errno), KV(filename));
-        return;
+        ITER_WARN_KV(MSG("Add watcher failed."), KV(errno), KV(filename));
+        return false;
     }
     // Maintain dicts.
     Node node = {ptr, watcher_fd, filename, loader};
     watcher_map_[watcher_fd] = node;
     ptr_map_[ptr] = node;
-    ITER_INFO_KV(MSG("Insert watcher success."), KV(watcher_fd), KV(filename));
+    return true;
 }
 
-void FileLoaderManager::DeleteFileLoader(void* ptr, const std::string& filename) {
+bool FileLoaderManager::DeleteFileLoader(void* ptr) {
     std::lock_guard <std::mutex> lck(mtx_);
     auto it = ptr_map_.find(ptr);
-    if (it == ptr_map_.end()) {
-        ITER_WARN_KV(MSG("Delete watcher failed, no such file-loader."), KV(filename));
-        return;
-    }
+    if (it == ptr_map_.end()) return false;
+
     Node node = it->second;
     ptr_map_.erase(ptr);
     watcher_map_.erase(node.watcher_fd);
     int rm_ret = inotify_rm_watch(inotify_fd_, node.watcher_fd);
     if (rm_ret == -1) {
         ITER_WARN_KV(MSG("Call inotify_rm_watch failed."),
-            KV(errno), KV("watcher_fd", node.watcher_fd), KV(filename));
-        return;
+            KV(errno), KV("watcher_fd", node.watcher_fd),
+            KV("filename", node.filename));
+        return false;
     }
-    ITER_INFO_KV(MSG("Delete watcher success."),
-        KV("watcher_fd", node.watcher_fd), KV(filename));
+    return true;
 }
 
 void FileLoaderManager::WatcherCallback() {
@@ -141,7 +139,7 @@ void FileLoaderManager::WatcherCallback() {
                 ITER_INFO_KV(MSG("Event triggered."),
                     KV("filename", node.filename), KV("event_mask", event->mask));
                 if (event->mask & (IN_DELETE_SELF | IN_MOVE_SELF)) {
-                    DeleteFileLoader(node.ptr, node.filename);
+                    DeleteFileLoader(node.ptr);
                     InsertFileLoader(node.ptr, node.filename, node.loader);
                 }
                 PushTask(node.filename, node.loader);

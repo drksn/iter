@@ -21,10 +21,10 @@ class FileLoaderManager {
 public:
     static FileLoaderManager* GetInstance();
 
-    void InsertFileLoader(void* ptr, const std::string& filename,
+    bool InsertFileLoader(void* ptr, const std::string& filename,
         const std::function <bool()>& loader);
 
-    void DeleteFileLoader(void* ptr, const std::string& filename);
+    bool DeleteFileLoader(void* ptr);
 
     std::future <bool> PushTask(const std::string& filename,
         const std::function <bool()>& loader);
