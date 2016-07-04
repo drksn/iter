@@ -21,13 +21,15 @@ class FileLoaderManager {
 public:
     static FileLoaderManager* GetInstance();
 
-    bool InsertFileLoader(void* ptr, const std::string& filename,
-        const std::function <bool()>& loader);
+    bool InsertFileLoader(void* ptr,
+        const std::function <bool(const std::string&)>& loader,
+        const std::string& filename);
 
     bool DeleteFileLoader(void* ptr);
 
-    std::future <bool> PushTask(const std::string& filename,
-        const std::function <bool()>& loader);
+    std::future <bool> PushTask(
+        const std::function <bool(const std::string&)>& loader,
+        const std::string& filename);
 
 private:
     FileLoaderManager(size_t pool_size);
@@ -38,7 +40,7 @@ private:
         void* ptr;
         int watcher_fd;
         std::string filename;
-        std::function <bool()> loader;
+        std::function <bool(const std::string&)> loader;
     } Node;
 
     std::map <int, Node> watcher_map_; // The key is watcher fd.
