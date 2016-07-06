@@ -1,10 +1,10 @@
 #ifndef ITER_LOGGER_HPP
 #define ITER_LOGGER_HPP
 
-#include <cstdint>
-#include <cstdio>
-#include <mutex>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <string>
+#include <mutex>
 
 namespace iter {
 
@@ -13,16 +13,17 @@ public:
     Logger();
     ~Logger();
     bool Init(const std::string& filename);
-    void Print(const std::string& log_str);
+    void Print(const std::string& log);
 
 private:
-    uint64_t GetFileNode();
-    bool OpenFile();
-    void CloseFile();
-    void WriteFile(const std::string& log_str);
+    void Fix();
+    bool GetIno(ino_t& ino);
+    bool Open();
+    void Close();
+    void Write(const std::string& log);
 
     int fd_;
-    uint64_t inode_;
+    ino_t ino_;
     std::string filename_;
     std::mutex mtx_;
 };
