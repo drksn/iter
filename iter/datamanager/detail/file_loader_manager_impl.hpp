@@ -33,10 +33,11 @@ FileLoaderManager::~FileLoaderManager() {
 }
 
 std::future <bool> FileLoaderManager::PushTask(
-        const std::string& filename, const std::function <bool()>& loader) {
+        const std::function <bool(const std::string&)>& loader,
+        const std::string& filename) {
     return thread_pool_ptr_->PushTask(
             [=]() {
-                bool ret = loader();
+                bool ret = loader(filename);
                 if (ret)
                     ITER_INFO_KV(MSG("Auto load success."), KV(filename));
                 else
@@ -52,8 +53,9 @@ FileLoaderManager* FileLoaderManager::GetInstance() {
     return &file_loader_manager;
 }
 
-bool FileLoaderManager::InsertFileLoader(void* ptr, const std::string& filename,
-        const std::function <bool()>& loader) {
+bool FileLoaderManager::InsertFileLoader(void* ptr,
+        const std::function <bool(const std::string&)>& loader,
+        const std::string& filename) {
     // If file not exist, touch a new empty file.
     struct stat f_stat;
     if (stat(filename.c_str(), &f_stat) != 0){
@@ -140,9 +142,9 @@ void FileLoaderManager::WatcherCallback() {
                     KV("filename", node.filename), KV("event_mask", event->mask));
                 if (event->mask & (IN_DELETE_SELF | IN_MOVE_SELF)) {
                     DeleteFileLoader(node.ptr);
-                    InsertFileLoader(node.ptr, node.filename, node.loader);
+                    InsertFileLoader(node.ptr, node.loader, node.filename);
                 }
-                PushTask(node.filename, node.loader);
+                PushTask(node.loader, node.filename);
             }
             i += ITER_INOTIFY_EVENT_SIZE + event->len;
         }

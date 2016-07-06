@@ -27,7 +27,7 @@ private:
     void Init();
     // If the corresponding file is modified,
     // FileLoaderManager will call this function automatically.
-    bool Load();
+    bool Load(const std::string& filename);
 
     typedef DoubleBuffer <Buffer> BufferMgr;
     std::string filename_;

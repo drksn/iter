@@ -1,7 +1,7 @@
 #ifndef ITER_FILE_LOADER_REGISTER_HPP
 #define ITER_FILE_LOADER_REGISTER_HPP
 
-#include <iter/datamanager/file_loader_manager.hpp>
+#include <iter/datamanager/detail/file_loader_manager.hpp>
 #include <iter/log.hpp>
 #include <functional>
 #include <future>
@@ -15,11 +15,13 @@ public:
 
     bool Deregister();
 
-    bool Register(const std::string& filename,
-        const std::function <bool()>& loader);
+    bool Register(
+        const std::function <bool(const std::string&)>& loader,
+        const std::string& filename);
 
-    std::future <bool> PushTask(const std::string& filename,
-        const std::function <bool()>& loader);
+    std::future <bool> PushTask(
+        const std::function <bool(const std::string&)>& loader,
+        const std::string& filename);
 };
 
 FileLoaderRegister::~FileLoaderRegister() {
@@ -30,16 +32,18 @@ bool FileLoaderRegister::Deregister() {
     return FileLoaderManager::GetInstance()->DeleteFileLoader((void*)this);
 }
 
-bool FileLoaderRegister::Register(const std::string& filename,
-        const std::function <bool()>& loader) {
+bool FileLoaderRegister::Register(
+        const std::function <bool(const std::string&)>& loader,
+        const std::string& filename) {
     Deregister();
     return FileLoaderManager::GetInstance()->InsertFileLoader(
-            (void*)this, filename, loader);
+            (void*)this, loader, filename);
 }
 
-std::future <bool> FileLoaderRegister::PushTask(const std::string& filename,
-        const std::function <bool()>& loader) {
-    return FileLoaderManager::GetInstance()->PushTask(filename, loader);
+std::future <bool> FileLoaderRegister::PushTask(
+        const std::function <bool(const std::string&)>& loader,
+        const std::string& filename) {
+    return FileLoaderManager::GetInstance()->PushTask(loader, filename);
 }
 
 } // namespace iter

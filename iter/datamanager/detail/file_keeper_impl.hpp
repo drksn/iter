@@ -10,11 +10,11 @@ namespace iter {
 
 template <class LoadFunc, class Buffer>
 void FileKeeper <LoadFunc, Buffer>::Init() {
-    std::function <bool()> loader(
-        std::bind(&iter::FileKeeper <LoadFunc, Buffer>::Load, this));
-    register_.Register(filename_, loader);
-    auto ret = register_.PushTask(filename_, loader);
-    ret.get(); // Initial load.
+    std::function <bool(const std::string&)> loader(std::bind(
+        &iter::FileKeeper <LoadFunc, Buffer>::Load, this, std::placeholders::_1));
+    register_.Register(loader, filename_);
+    auto ret = register_.PushTask(loader, filename_);
+    if (ret.valid()) ret.get(); // Initial load.
 }
 
 template <class LoadFunc, class Buffer>
@@ -45,13 +45,13 @@ bool FileKeeper <LoadFunc, Buffer>::GetBuffer(std::shared_ptr <Buffer>* ptr) {
 }
 
 template <class LoadFunc, class Buffer>
-bool FileKeeper <LoadFunc, Buffer>::Load() {
+bool FileKeeper <LoadFunc, Buffer>::Load(const std::string& filename) {
     std::shared_ptr <Buffer> ptr;
     bool get_ret = buffer_mgr_ptr_->GetNextBuffer(&ptr); // NOTICE
     if (!get_ret) return false;
 
     std::lock_guard <std::mutex> lck(mtx_);
-    bool load_ret = (*load_func_ptr_)(filename_, *ptr);
+    bool load_ret = (*load_func_ptr_)(filename, *ptr);
     if (!load_ret) return false;
     buffer_mgr_ptr_->SwapBuffer();
     return true;
