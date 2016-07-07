@@ -8,10 +8,6 @@
 #define MSG(arg) std::make_pair("msg", arg)
 #endif // MSG
 
-#ifdef ITER_LOG_DISABLE
-#define ITER_LOG_KV(log_level, log_arg...)
-#endif // ITER_LOG_DISABLE
-
 #ifndef ITER_LOG_KV
 #define ITER_LOG_KV(log_level, log_arg...) \
     ITER_LOG_WRITE(ITER_LOG_HEAD(log_level) + " " + iter::KvStr(log_arg) + "\n")

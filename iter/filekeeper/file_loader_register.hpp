@@ -1,7 +1,7 @@
 #ifndef ITER_FILE_LOADER_REGISTER_HPP
 #define ITER_FILE_LOADER_REGISTER_HPP
 
-#include <iter/datamanager/detail/file_loader_manager.hpp>
+#include <iter/filekeeper/detail/file_loader_manager.hpp>
 #include <iter/log.hpp>
 #include <functional>
 #include <future>

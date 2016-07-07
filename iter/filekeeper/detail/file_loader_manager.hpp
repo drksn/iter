@@ -55,6 +55,6 @@ private:
 
 } // namespace iter
 
-#include <iter/datamanager/detail/file_loader_manager_impl.hpp>
+#include <iter/filekeeper/detail/file_loader_manager_impl.hpp>
 
 #endif // ITER_FILE_LOADER_MANAGER_HPP
