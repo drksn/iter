@@ -1,8 +1,8 @@
 #ifndef ITER_FILE_KEEPER_HPP
 #define ITER_FILE_KEEPER_HPP
 
-#include <iter/datamanager/double_buffer.hpp>
-#include <iter/datamanager/file_loader_register.hpp>
+#include <iter/filekeeper/double_buffer.hpp>
+#include <iter/filekeeper/file_loader_register.hpp>
 #include <string>
 #include <memory>
 #include <mutex>
@@ -39,7 +39,7 @@ private:
 
 } // namespace iter
 
-#include <iter/datamanager/detail/file_keeper_impl.hpp>
+#include <iter/filekeeper/detail/file_keeper_impl.hpp>
 
 #endif // ITER_FILE_KEEPER_HPP
 

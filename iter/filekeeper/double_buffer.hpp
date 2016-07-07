@@ -33,6 +33,6 @@ private:
 
 } // namespace iter
 
-#include <iter/datamanager/detail/double_buffer_impl.hpp>
+#include <iter/filekeeper/detail/double_buffer_impl.hpp>
 
 #endif // ITER_DOUBLE_BUFFER_HPP
