@@ -1,8 +1,8 @@
 #ifndef ITER_FILE_KEEPER_HPP
 #define ITER_FILE_KEEPER_HPP
 
-#include <iter/filekeeper/double_buffer.hpp>
 #include <iter/filekeeper/file_loader_register.hpp>
+#include <iter/util/double_buffer.hpp>
 #include <string>
 #include <memory>
 #include <mutex>
@@ -13,15 +13,22 @@ namespace iter {
 template <class LoadFunc, class Buffer =
     typename std::remove_reference <typename LoadFunc::second_argument_type>::type>
 class FileKeeper {
-public:
-    template <class LoadFuncInit, class ...Types>
-    FileKeeper(const std::string& filename,
-        LoadFuncInit&& load_func_init, Types&& ...args);
+private:
+    typedef DoubleBuffer <Buffer> BufferMgr;
 
+public:
+    typedef Buffer ValueType;
+    typedef typename BufferMgr::ConstPtrType ConstPtrType;
+    // Constructor.
+    template <class LoadFuncInit>
+    FileKeeper(const std::string& filename,
+        LoadFuncInit&& load_func_init);
+    // It will be matched only if the size of args pack is zero.
     template <class ...Types>
     FileKeeper(const std::string& filename, Types&& ...args);
-
-    bool GetBuffer(std::shared_ptr <Buffer>* ptr);
+    // Get the const shared pointer of buffer,
+    // if buffer is empty, return NULL.
+    ConstPtrType Get();
 
 private:
     void Init();
@@ -29,7 +36,6 @@ private:
     // FileLoaderManager will call this function automatically.
     bool Load(const std::string& filename);
 
-    typedef DoubleBuffer <Buffer> BufferMgr;
     std::string filename_;
     std::unique_ptr <BufferMgr> buffer_mgr_ptr_;
     std::unique_ptr <LoadFunc> load_func_ptr_;

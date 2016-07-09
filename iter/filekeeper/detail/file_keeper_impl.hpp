@@ -18,42 +18,43 @@ void FileKeeper <LoadFunc, Buffer>::Init() {
 }
 
 template <class LoadFunc, class Buffer>
-template <class LoadFuncInit, class ...Types>
+template <class LoadFuncInit>
 FileKeeper <LoadFunc, Buffer>::FileKeeper(const std::string& filename,
-        LoadFuncInit&& load_func_init, Types&& ...args) {
+        LoadFuncInit&& load_func_init) {
     filename_ = filename;
+    buffer_mgr_ptr_ = std::unique_ptr <BufferMgr> (new BufferMgr());
     load_func_ptr_ = std::unique_ptr <LoadFunc> (
         new LoadFunc(std::forward <LoadFuncInit> (load_func_init)));
-    buffer_mgr_ptr_ = std::unique_ptr <BufferMgr> (
-        new BufferMgr(std::forward <Types> (args)...));
     Init();
- }
+}
 
 template <class LoadFunc, class Buffer>
 template <class ...Types>
 FileKeeper <LoadFunc, Buffer>::FileKeeper(
         const std::string& filename, Types&& ...args) {
     filename_ = filename;
+    buffer_mgr_ptr_ = std::unique_ptr <BufferMgr> (new BufferMgr());
     load_func_ptr_ = std::unique_ptr <LoadFunc> (new LoadFunc(args...));
-    buffer_mgr_ptr_ = std::unique_ptr <BufferMgr> (new BufferMgr(args...));
     Init();
 }
 
 template <class LoadFunc, class Buffer>
-bool FileKeeper <LoadFunc, Buffer>::GetBuffer(std::shared_ptr <Buffer>* ptr) {
-    return buffer_mgr_ptr_->GetBuffer(ptr);
+typename FileKeeper <LoadFunc, Buffer>::ConstPtrType
+    FileKeeper <LoadFunc, Buffer>::Get() {
+    return buffer_mgr_ptr_->Get();
 }
 
 template <class LoadFunc, class Buffer>
 bool FileKeeper <LoadFunc, Buffer>::Load(const std::string& filename) {
-    std::shared_ptr <Buffer> ptr;
-    bool get_ret = buffer_mgr_ptr_->GetNextBuffer(&ptr); // NOTICE
-    if (!get_ret) return false;
+    if (!buffer_mgr_ptr_->Released()) return false;
 
-    std::lock_guard <std::mutex> lck(mtx_);
-    bool load_ret = (*load_func_ptr_)(filename, *ptr);
+    Buffer buffer_tmp;
+    bool load_ret = (*load_func_ptr_)(filename, buffer_tmp);
     if (!load_ret) return false;
-    buffer_mgr_ptr_->SwapBuffer();
+
+    bool update_ret = buffer_mgr_ptr_->Update(std::move(buffer_tmp));
+    if (!update_ret) return false;
+
     return true;
 }
 
