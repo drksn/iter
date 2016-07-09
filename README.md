@@ -62,7 +62,7 @@ Both ```FileReader``` and ```SampleLoadFunc``` are acceptable.
 | Member function | Description |
 | ------ | ------ |
 | [(constructor)](https://github.com/qianyl/iter#iterfilekeeperfilekeeper) | Construct function. |
-| [GetBuffer](https://github.com/qianyl/iter#iterfilekeepergetbuffer) | Get the shared pointer of buffer. |
+| [Get](https://github.com/qianyl/iter#iterfilekeeperget) | Get the const shared pointer of buffer. |
 
 ##### iter::FileKeeper::FileKeeper #####
 ```cpp
@@ -70,15 +70,13 @@ FileKeeper(const std::string& filename);
 ```
 ```cpp
 template <class LoadFuncInit, class ...Types>
-FileKeeper(const std::string& filename,
-    LoadFuncInit&& load_func_init, Types&& ...args);
+FileKeeper(const std::string& filename, LoadFuncInit&& load_func_init);
 ```
-If ```LoadFunc``` and ```Buffer``` have non-parameter constructor, your can use the first constructor.
+If ```LoadFunc``` have non-parameter constructor, your can use the first constructor.
 
-The second constructor use the following operation to construct ```LoadFunc``` and ```Buffer```:
+The second constructor use the following operation to construct ```LoadFunc```:
 ```cpp
 new LoadFunc(load_func_init)
-new Buffer(args...)
 ```
 For example:
 ```cpp
@@ -97,15 +95,15 @@ FileKeeper <FileReader> file_keeper("test.txt");
 FileKeeper <SampleLoadFunc> file_keeper("test.txt", read_file, "");
 ```
 
-##### iter::FileKeeper::GetBuffer #####
+##### iter::FileKeeper::Get #####
 ```cpp
-bool GetBuffer(std::shared_ptr <Buffer>* ptr);
+ConstPtrType Get();
 ```
-By calling ```GetBuffer```, you can get the shared pointer of your structure ```Buffer```.
+By calling ```Get```, you can get the const shared pointer of your structure ```Buffer```.
 
 ```FileKeeper``` using double buffer for hot loading, and ```std::shared_ptr``` have its own reference counter.
 
-So, by calling ```std::shared_ptr::unique()```, we can know whether the buffer is released by all users. 
+So, by calling ```std::shared_ptr::unique()```, we can know whether the buffer is released by all users.
 
 If the buffer is not the latest and released by all users, ```FileKeeper``` will release this buffer for the coming new data.
 
@@ -126,21 +124,26 @@ int main() {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
     iter::FileKeeper <iter::FileReader> file_keeper(filename);
-    std::shared_ptr <std::string> ptr;
-    bool get_ret = file_keeper.GetBuffer(&ptr);
-    std::cout << "Get result = " << *ptr << std::endl;
+    std::shared_ptr <const std::string> ptr;
+    ptr = file_keeper.Get();
+    if (ptr)
+        std::cout << "Get result = " << *ptr << std::endl;
+    else
+        std::cout << "Buffer is empty." << std::endl;
     ptr.reset();
 
     std::string new_text = "File keeper modified.";
     bool new_write_ret = iter::FileWriter()(new_text, filename);
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-    bool new_get_ret = file_keeper.GetBuffer(&ptr);
-    std::cout << "Get result = " << *ptr << std::endl;
+    ptr = file_keeper.Get();
+    if (ptr)
+        std::cout << "Get result = " << *ptr << std::endl;
+    else
+        std::cout << "Buffer is empty." << std::endl;
 
     return 0;
 }
-
 ```
 stdout:
 ```

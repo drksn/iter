@@ -32,10 +32,9 @@ public:
 };
 
 TEST_F(FileKeeperTest, SimpleTest) {
-    std::shared_ptr <std::string> ptr;
-    bool get_ret = file_keeper_ptr->GetBuffer(&ptr);
-    EXPECT_TRUE(get_ret);
-    EXPECT_EQ(*ptr, content);
+    auto ptr = file_keeper_ptr->Get();
+    EXPECT_TRUE(bool(ptr));
+    if (ptr) EXPECT_EQ(*ptr, content);
 }
 
 TEST_F(FileKeeperTest, ModifyTest) {
@@ -44,10 +43,9 @@ TEST_F(FileKeeperTest, ModifyTest) {
     bool write_ret = FileWriter()(newtext, filename);
     EXPECT_TRUE(write_ret);
     usleep(1e5);
-    std::shared_ptr <std::string> ptr;
-    bool get_ret = file_keeper_ptr->GetBuffer(&ptr);
-    EXPECT_TRUE(get_ret);
-    EXPECT_EQ(*ptr, newtext);
+    auto ptr = file_keeper_ptr->Get();
+    EXPECT_TRUE(bool(ptr));
+    if (ptr) EXPECT_EQ(*ptr, newtext);
 }
 
 void MoveWrite(const std::string& content, const std::string& filename) {
@@ -62,17 +60,17 @@ TEST_F(FileKeeperTest, MoveCoverTest) {
     std::string text_test = "GIRIGIRI_EYE\n";
     MoveWrite(text_test, filename);
     usleep(1e5);
-    std::shared_ptr <std::string> ptr;
-    bool get_ret = file_keeper_ptr->GetBuffer(&ptr);
-    EXPECT_TRUE(get_ret);
-    EXPECT_EQ(text_test, *ptr);
+    auto ptr = file_keeper_ptr->Get();
+    EXPECT_TRUE(bool(ptr));
+    if (ptr) EXPECT_EQ(text_test, *ptr);
 
     text_test = "GIRIGIRI_MINE\n";
     MoveWrite(text_test, filename);
     usleep(1e5);
-    get_ret = file_keeper_ptr->GetBuffer(&ptr);
-    EXPECT_TRUE(get_ret);
-    EXPECT_EQ(text_test, *ptr);
+
+    ptr = file_keeper_ptr->Get();
+    EXPECT_TRUE(bool(ptr));
+    if (ptr) EXPECT_EQ(text_test, *ptr);
 }
 
 TEST_F(FileKeeperTest, MoveSelfTest) {
@@ -86,10 +84,9 @@ TEST_F(FileKeeperTest, MoveSelfTest) {
     system(cmd.c_str());
     usleep(1e5);
 
-    std::shared_ptr <std::string> ptr;
-    bool get_ret = file_keeper_ptr->GetBuffer(&ptr);
-    EXPECT_TRUE(get_ret);
-    EXPECT_EQ(text_test, *ptr);
+    auto ptr = file_keeper_ptr->Get();
+    EXPECT_TRUE(bool(ptr));
+    if (ptr) EXPECT_EQ(text_test, *ptr);
 }
 
 TEST_F(FileKeeperTest, DeleteTest) {
@@ -98,17 +95,18 @@ TEST_F(FileKeeperTest, DeleteTest) {
     FileKeeper <FileReader> fk(filename_test);
     FileWriter()(text_test, filename_test);
     usleep(1e5);
-    std::shared_ptr <std::string> ptr;
-    bool get_ret = fk.GetBuffer(&ptr);
-    EXPECT_TRUE(get_ret);
-    EXPECT_EQ(text_test, *ptr);
+
+    auto ptr = fk.Get();
+    EXPECT_TRUE(bool(ptr));
+    if (ptr) EXPECT_EQ(text_test, *ptr);
 
     std::string cmd = "rm -rf " + filename_test;
     system(cmd.c_str());
     FileWriter()(text_test, filename_test);
     usleep(1e5);
-    get_ret = fk.GetBuffer(&ptr);
-    EXPECT_TRUE(get_ret);
-    EXPECT_EQ(text_test, *ptr);
+
+    ptr = fk.Get();
+    EXPECT_TRUE(bool(ptr));
+    if (ptr) EXPECT_EQ(text_test, *ptr);
 }
 
