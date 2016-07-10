@@ -15,11 +15,9 @@ template <class LoadFunc, class Buffer =
 class FileKeeper {
 private:
     typedef DoubleBuffer <Buffer> BufferMgr;
+    std::unique_ptr <BufferMgr> buffer_mgr_ptr_;
 
 public:
-    typedef Buffer ValueType;
-    typedef typename BufferMgr::ConstPtrType ConstPtrType;
-    // Constructor.
     template <class LoadFuncInit>
     FileKeeper(const std::string& filename,
         LoadFuncInit&& load_func_init);
@@ -28,7 +26,7 @@ public:
     FileKeeper(const std::string& filename, Types&& ...args);
     // Get the const shared pointer of buffer,
     // if buffer is empty, return NULL.
-    ConstPtrType Get();
+    auto Get() -> decltype(buffer_mgr_ptr_->Get());
 
 private:
     void Init();
@@ -37,7 +35,6 @@ private:
     bool Load(const std::string& filename);
 
     std::string filename_;
-    std::unique_ptr <BufferMgr> buffer_mgr_ptr_;
     std::unique_ptr <LoadFunc> load_func_ptr_;
     std::mutex mtx_;
     FileLoaderRegister register_;

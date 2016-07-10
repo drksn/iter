@@ -39,8 +39,7 @@ FileKeeper <LoadFunc, Buffer>::FileKeeper(
 }
 
 template <class LoadFunc, class Buffer>
-typename FileKeeper <LoadFunc, Buffer>::ConstPtrType
-    FileKeeper <LoadFunc, Buffer>::Get() {
+auto FileKeeper <LoadFunc, Buffer>::Get() -> decltype(buffer_mgr_ptr_->Get()) {
     return buffer_mgr_ptr_->Get();
 }
 
