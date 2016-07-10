@@ -1,41 +1,44 @@
 #ifndef ITER_TIME_KEEPER_HPP
 #define ITER_TIME_KEEPER_HPP
 
-#include <sys/time.h>
-#include <string>
+#include <chrono>
 
 namespace iter {
 
 class TimeKeeper {
 public:
-    TimeKeeper(){
-        Restart();
-    }
-    void Restart(){
-        gettimeofday(&tv_begin_, NULL);
-        tv_last_ = tv_begin_;
-    }
-
-    long GetInterval(){
-        struct timeval tv_end;
-        gettimeofday(&tv_end, NULL);
-        long interval_time = (tv_end.tv_sec - tv_last_.tv_sec) * 1000
-            + (tv_end.tv_usec - tv_last_.tv_usec) / 1000;
-        tv_last_ = tv_end;
-        return interval_time;
-    }
-
-    long GetTotal(){
-        struct timeval tv_end;
-        gettimeofday(&tv_end, NULL);
-        long total_time = (tv_end.tv_sec - tv_begin_.tv_sec) * 1000
-            + (tv_end.tv_usec - tv_begin_.tv_usec) / 1000;
-        return total_time;
-    }
+    TimeKeeper();
+    void Reset();
+    template <class Rep = int,
+        class Period = std::milli> Rep GetTotal();
+    template <class Rep = int,
+        class Period = std::milli> Rep GetInterval();
 
 private:
-    struct timeval tv_begin_, tv_last_;
+    std::chrono::high_resolution_clock::time_point begin_, last_;
 };
+
+TimeKeeper::TimeKeeper() {
+    Reset();
+}
+
+void TimeKeeper::Reset() {
+    begin_ = last_ = std::chrono::high_resolution_clock::now();
+}
+
+template <class Rep, class Period> Rep TimeKeeper::GetTotal() {
+    using namespace std::chrono;
+    high_resolution_clock::time_point now = high_resolution_clock::now();
+    return duration_cast <duration <Rep, Period>>(now - begin_).count();
+}
+
+template <class Rep, class Period> Rep TimeKeeper::GetInterval() {
+    using namespace std::chrono;
+    high_resolution_clock::time_point now = high_resolution_clock::now();
+    Rep ret = duration_cast <duration <Rep, Period>>(now - last_).count();
+    last_ = now;
+    return ret;
+}
 
 } // namespace iter
 
