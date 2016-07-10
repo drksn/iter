@@ -12,8 +12,6 @@ namespace iter {
 template <class Buffer>
 class DoubleBuffer{
 public:
-    typedef Buffer ValueType;
-    typedef std::shared_ptr <typename std::add_const<ValueType>::type> ConstPtrType;
     DoubleBuffer();
     // If double buffer is empty, return true.
     bool Empty();
@@ -21,11 +19,11 @@ public:
     bool Released();
     // Get the const shared pointer of the active buffer,
     // if double buffer is empty, return NULL. (NOTICE)
-    ConstPtrType Get();
+    std::shared_ptr <typename std::add_const<Buffer>::type> Get();
     // Update double buffer,
     // if the inactive buffer is not released by all users, return false.
-    bool Update(const ValueType& buffer);
-    bool Update(ValueType&& buffer);
+    bool Update(const Buffer& buffer);
+    bool Update(Buffer&& buffer);
     // Disable copy constructor and copy assignment operator.
     DoubleBuffer(const DoubleBuffer&) = delete;
     DoubleBuffer& operator = (const DoubleBuffer&) = delete;
@@ -38,7 +36,7 @@ private:
     int active_idx_;
     bool is_empty_;
     // The shared pointer of the two buffer.
-    std::shared_ptr <ValueType> buffer_ptr_[2];
+    std::shared_ptr <Buffer> buffer_ptr_[2];
     std::mutex mtx_;
 };
 
@@ -46,8 +44,8 @@ template <class Buffer>
 DoubleBuffer <Buffer>::DoubleBuffer() {
     active_idx_ = 0;
     is_empty_ = true;
-    buffer_ptr_[0] = std::make_shared <ValueType> ();
-    buffer_ptr_[1] = std::make_shared <ValueType> ();
+    buffer_ptr_[0] = std::make_shared <Buffer> ();
+    buffer_ptr_[1] = std::make_shared <Buffer> ();
 }
 
 template <class Buffer>
@@ -61,13 +59,14 @@ bool DoubleBuffer <Buffer>::Released() {
 }
 
 template <class Buffer>
-typename DoubleBuffer <Buffer>::ConstPtrType DoubleBuffer <Buffer>::Get() {
-    if (Empty()) return ConstPtrType(); // Return NULL.
+std::shared_ptr <typename std::add_const <Buffer>::type> DoubleBuffer <Buffer>::Get() {
+    if (Empty())
+        return std::shared_ptr <typename std::add_const <Buffer>::type> (); // Return NULL.
     return buffer_ptr_[active_idx_];
 }
 
 template <class Buffer>
-bool DoubleBuffer <Buffer>::Update(const ValueType& buffer) {
+bool DoubleBuffer <Buffer>::Update(const Buffer& buffer) {
     if (!Released()) return false;
     std::lock_guard <std::mutex> lck(mtx_);
     *buffer_ptr_[active_idx_ ^ 1] = buffer;
@@ -77,7 +76,7 @@ bool DoubleBuffer <Buffer>::Update(const ValueType& buffer) {
 }
 
 template <class Buffer>
-bool DoubleBuffer <Buffer>::Update(ValueType&& buffer) {
+bool DoubleBuffer <Buffer>::Update(Buffer&& buffer) {
     if (!Released()) return false;
     std::lock_guard <std::mutex> lck(mtx_);
     *buffer_ptr_[active_idx_ ^ 1] = std::move(buffer);
