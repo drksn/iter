@@ -97,7 +97,7 @@ FileKeeper <SampleLoadFunc> file_keeper("test.txt", read_file, "");
 
 ##### iter::FileKeeper::Get #####
 ```cpp
-ConstPtrType Get();
+std::shared_ptr <typename std::add_const <Buffer>::type> Get();
 ```
 By calling ```Get```, you can get the const shared pointer of your structure ```Buffer```.
 
