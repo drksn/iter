@@ -41,28 +41,20 @@ inline bool Equal (double a, double b, double eps) {
 TEST(UtilTest, TimeKeeper) {
     TimeKeeper tk;
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    int ms_i1 = tk.GetInterval();
-    int ms_t1 = tk.GetTotal();
+    int ms_i1 = tk.GetElapsedTime();
     EXPECT_TRUE(Equal(ms_i1, 100, 20));
-    EXPECT_TRUE(Equal(ms_t1, 100, 20));
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-    int ms_i2 = tk.GetInterval();
-    int ms_t2 = tk.GetTotal();
-    EXPECT_TRUE(Equal(ms_i2, 100, 20));
-    EXPECT_TRUE(Equal(ms_t2, 200, 20));
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    int ms_i2 = tk.GetElapsedTime();
+    EXPECT_TRUE(Equal(ms_i2, 200, 20));
 
     tk.Reset(); // Reset time keeper.
 
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    double s_i1 = tk.GetInterval <double, std::ratio <1, 1>>();
-    double s_t1 = tk.GetTotal <double, std::ratio <1, 1>>();
+    double s_i1 = tk.GetElapsedTime <double, std::ratio <1, 1>>();
     EXPECT_TRUE(Equal(s_i1, 0.1, 0.02));
-    EXPECT_TRUE(Equal(s_t1, 0.1, 0.02));
 
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    double s_i2 = tk.GetInterval <double, std::ratio <1, 1>>();
-    double s_t2 = tk.GetTotal <double, std::ratio <1, 1>>();
-    EXPECT_TRUE(Equal(s_i2, 0.1, 0.02));
-    EXPECT_TRUE(Equal(s_t2, 0.2, 0.02));
+    double s_i2 = tk.GetElapsedTime <double, std::ratio <1, 1>>();
+    EXPECT_TRUE(Equal(s_i2, 0.2, 0.02));
 }
