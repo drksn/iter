@@ -7,7 +7,7 @@
 namespace iter {
 
 template <class First, class ...Types>
-Link <First, Types...> MakeLink (First&& f, Types ...args) {
+Link <First, Types...> MakeLink (First&& f, Types&& ...args) {
     return Link <First, Types...> (
         std::forward <First> (f),
         std::forward <Types> (args)...);
