@@ -91,3 +91,16 @@ TEST(LinkTest, NestTest) {
     EXPECT_EQ(s1, "CountingStar:@#$");
     EXPECT_EQ(s2, "CountingStar:@*#$");
 }
+
+TEST(LinkTest, MakeLinkTest) {
+    auto l1 = MakeLink(AddStar());
+    auto l2 = MakeLink(AddStar(), AddStar("$"));
+    auto l3 = MakeLink(AddStar(), AddStar("#"), BSS(addone));
+    std::string miao = "Miao:", s1, s2, s3;
+    l1(miao, s1);
+    l2(miao, s2);
+    l3(miao, s3);
+    EXPECT_EQ(s1, "Miao:*");
+    EXPECT_EQ(s2, "Miao:*$");
+    EXPECT_EQ(s3, "Miao:*#1");
+}

@@ -1,7 +1,4 @@
-#include <iter/util/kvstr.hpp>
-#include <iter/util/fmtstr.hpp>
-#include <iter/util/split.hpp>
-#include <iter/util/time_keeper.hpp>
+#include <iter/util.hpp>
 #include <gtest/gtest.h>
 
 #include <iostream>
