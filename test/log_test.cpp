@@ -11,7 +11,8 @@
 #include <memory>
 #include <functional>
 #include <map>
-
+#include <list>
+#include <tuple>
 using namespace iter;
 
 const int OUTER = 6, INNER = 100, SYS_NUM = 3, SLEEP_TIME = 100;
@@ -33,6 +34,14 @@ TEST(LogTest, Kv) {
     ITER_WARN_KV(MSG("Call 110."), KV(value));
     ITER_ERROR_KV(MSG("Call 110."), KV(value));
     ITER_FATAL_KV(MSG("Call 110."), KV(value));
+
+    std::map <std::string, int> mp =
+        {std::make_pair("map_1", 1), std::make_pair("map_2", 2)};
+    std::vector <std::pair <std::string, double>> vec =
+        {std::make_pair("vec_1", 3.3), std::make_pair("vec_2", 4.4)};
+    std::list <std::tuple <std::string, int>> lst =
+        {std::make_tuple("list_1", 5), std::make_tuple("list_2", 6)};
+    ITER_INFO_KV(MSG("map, vector and list test."), mp, vec, lst);
 }
 
 TEST(LogTest, Fmt) {
