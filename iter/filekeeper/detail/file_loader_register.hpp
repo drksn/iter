@@ -3,6 +3,7 @@
 
 #include <iter/filekeeper/detail/file_loader_manager.hpp>
 #include <iter/log.hpp>
+#include <uuid/uuid.h>
 #include <functional>
 #include <future>
 #include <string>
@@ -11,6 +12,7 @@ namespace iter {
 
 class FileLoaderRegister {
 public:
+    FileLoaderRegister();
     ~FileLoaderRegister();
 
     bool Deregister();
@@ -22,14 +24,25 @@ public:
     std::future <bool> PushTask(
         const std::function <bool(const std::string&)>& loader,
         const std::string& filename);
+
+private:
+    std::string uuid_;
 };
+
+FileLoaderRegister::FileLoaderRegister() {
+     uuid_t uuid;
+     char str[36];
+     uuid_generate(uuid);
+     uuid_unparse(uuid, str);
+     uuid_ = str;
+}
 
 FileLoaderRegister::~FileLoaderRegister() {
     Deregister();
 }
 
 bool FileLoaderRegister::Deregister() {
-    return FileLoaderManager::GetInstance()->DeleteFileLoader((void*)this);
+    return FileLoaderManager::GetInstance()->DeleteFileLoader(uuid_);
 }
 
 bool FileLoaderRegister::Register(
@@ -37,7 +50,7 @@ bool FileLoaderRegister::Register(
         const std::string& filename) {
     Deregister();
     return FileLoaderManager::GetInstance()->InsertFileLoader(
-            (void*)this, loader, filename);
+            uuid_, loader, filename);
 }
 
 std::future <bool> FileLoaderRegister::PushTask(

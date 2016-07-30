@@ -21,11 +21,12 @@ class FileLoaderManager {
 public:
     static FileLoaderManager* GetInstance();
 
-    bool InsertFileLoader(void* ptr,
+    bool InsertFileLoader(
+        const std::string& owner_id,
         const std::function <bool(const std::string&)>& loader,
         const std::string& filename);
 
-    bool DeleteFileLoader(void* ptr);
+    bool DeleteFileLoader(const std::string& owner_id);
 
     std::future <bool> PushTask(
         const std::function <bool(const std::string&)>& loader,
@@ -37,14 +38,14 @@ private:
     void WatcherCallback();
 
     typedef struct {
-        void* ptr;
+        std::string owner_id;
         int watcher_fd;
         std::string filename;
         std::function <bool(const std::string&)> loader;
     } Node;
 
     std::map <int, Node> watcher_map_; // The key is watcher fd.
-    std::map <void*, Node> ptr_map_;
+    std::map <std::string, Node> owner_map_;
 
     bool shutdown_;
     size_t thread_pool_size_;
