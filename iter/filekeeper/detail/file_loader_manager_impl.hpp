@@ -53,7 +53,8 @@ FileLoaderManager* FileLoaderManager::GetInstance() {
     return &file_loader_manager;
 }
 
-bool FileLoaderManager::InsertFileLoader(void* ptr,
+bool FileLoaderManager::InsertFileLoader(
+        const std::string& owner_id,
         const std::function <bool(const std::string&)>& loader,
         const std::string& filename) {
     // If file not exist, touch a new empty file.
@@ -74,19 +75,20 @@ bool FileLoaderManager::InsertFileLoader(void* ptr,
         return false;
     }
     // Maintain dicts.
-    Node node = {ptr, watcher_fd, filename, loader};
+    Node node = {owner_id, watcher_fd, filename, loader};
     watcher_map_[watcher_fd] = node;
-    ptr_map_[ptr] = node;
+    owner_map_[owner_id] = node;
     return true;
 }
 
-bool FileLoaderManager::DeleteFileLoader(void* ptr) {
+bool FileLoaderManager::DeleteFileLoader(
+    const std::string& owner_id) {
     std::lock_guard <std::mutex> lck(mtx_);
-    auto it = ptr_map_.find(ptr);
-    if (it == ptr_map_.end()) return false;
+    auto it = owner_map_.find(owner_id);
+    if (it == owner_map_.end()) return false;
 
     Node node = it->second;
-    ptr_map_.erase(ptr);
+    owner_map_.erase(owner_id);
     watcher_map_.erase(node.watcher_fd);
     int rm_ret = inotify_rm_watch(inotify_fd_, node.watcher_fd);
     if (rm_ret == -1) {
@@ -141,8 +143,8 @@ void FileLoaderManager::WatcherCallback() {
                 ITER_INFO_KV(MSG("Event triggered."),
                     KV("filename", node.filename), KV("event_mask", event->mask));
                 if (event->mask & (IN_DELETE_SELF | IN_MOVE_SELF)) {
-                    DeleteFileLoader(node.ptr);
-                    InsertFileLoader(node.ptr, node.loader, node.filename);
+                    DeleteFileLoader(node.owner_id);
+                    InsertFileLoader(node.owner_id, node.loader, node.filename);
                 }
                 PushTask(node.loader, node.filename);
             }

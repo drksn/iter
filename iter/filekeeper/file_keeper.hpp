@@ -1,7 +1,7 @@
 #ifndef ITER_FILE_KEEPER_HPP
 #define ITER_FILE_KEEPER_HPP
 
-#include <iter/filekeeper/file_loader_register.hpp>
+#include <iter/filekeeper/detail/file_loader_register.hpp>
 #include <iter/util/double_buffer.hpp>
 #include <string>
 #include <memory>
