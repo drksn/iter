@@ -3,7 +3,7 @@
 PREFIX=..
 
 INCLUDE=-I./ \
-		-I${PREFIX} \
+		-I${PREFIX}/include \
 		-I./googletest/include/
 
 CXXFLAGS=-isystem -Wall --std=c++11 -pthread -DDEBUG -g

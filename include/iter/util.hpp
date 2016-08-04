@@ -1,6 +1,7 @@
 #ifndef ITER_UTIL_HPP_INCLUDED
 #define ITER_UTIL_HPP_INCLUDED
 
+#include <iter/util/double_queue.hpp>
 #include <iter/util/double_buffer.hpp>
 #include <iter/util/fmtstr.hpp>
 #include <iter/util/kvstr.hpp>
