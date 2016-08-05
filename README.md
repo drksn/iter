@@ -15,7 +15,7 @@ All of the log will be redirectied to the file ```"./iter.log"```. If not, the l
 
 ## Components ##
 * [[FileKeeper](https://github.com/qianyl/iter/tree/master/include/iter/filekeeper)] Hot load file and parse to your custom structure automatically.
-* [[Link](https://github.com/qianyl/iter/tree/master/include/iter/link)] Combine the binary functors (which are formed as 'bool func(TypeA, TypeB)').
+* [[Link](https://github.com/qianyl/iter/tree/master/include/iter/link)] Combine the binary functors which are formed as 'bool func(TypeA, TypeB)'.
 
 
 
