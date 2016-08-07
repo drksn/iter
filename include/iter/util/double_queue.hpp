@@ -2,7 +2,6 @@
 #define ITER_DOUBLE_QUEUE_HPP
 
 #include <mutex>
-#include <queue>
 #include <deque>
 #include <utility>
 
@@ -10,18 +9,17 @@ namespace iter {
 
 template <class ValueType, class Container = std::deque <ValueType>>
 class DoubleQueue {
-private:
-    typedef std::queue <ValueType, Container> Queue;
-
 public:
     DoubleQueue();
-    Queue* Get();
+    Container* Get();
     void Push(const ValueType& val);
     void Push(ValueType&& val);
+    // Return false if the active queue is empty.
+    bool Pop();
     void Switch();
 
 private:
-    Queue queue_[2];
+    Container queue_[2];
     int active_idx_;
     std::mutex mtx_;
 };
@@ -30,7 +28,7 @@ template <class ValueType, class Container>
 DoubleQueue <ValueType, Container>::DoubleQueue():active_idx_(0){}
 
 template <class ValueType, class Container>
-typename DoubleQueue <ValueType, Container>::Queue* DoubleQueue <ValueType, Container>::Get() {
+Container* DoubleQueue <ValueType, Container>::Get() {
     return &queue_[active_idx_];
 }
 
@@ -44,6 +42,14 @@ template <class ValueType, class Container>
 void DoubleQueue <ValueType, Container>::Push(ValueType&& val) {
     std::lock_guard <std::mutex> lck(mtx_);
     queue_[active_idx_].push(std::move(val));
+}
+
+template <class ValueType, class Container>
+bool DoubleQueue <ValueType, Container>::Pop() {
+    std::lock_guard <std::mutex> lck(mtx_);
+    if (queue_[active_idx_].size() == 0) return false;
+    queue_[active_idx_].pop();
+    return true;
 }
 
 template <class ValueType, class Container>
