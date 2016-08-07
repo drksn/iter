@@ -18,6 +18,8 @@ public:
     Queue* Get();
     void Push(const ValueType& val);
     void Push(ValueType&& val);
+    // Return false if the active queue is empty.
+    bool Pop();
     void Switch();
 
 private:
@@ -44,6 +46,14 @@ template <class ValueType, class Container>
 void DoubleQueue <ValueType, Container>::Push(ValueType&& val) {
     std::lock_guard <std::mutex> lck(mtx_);
     queue_[active_idx_].push(std::move(val));
+}
+
+template <class ValueType, class Container>
+bool DoubleQueue <ValueType, Container>::Pop() {
+    std::lock_guard <std::mutex> lck(mtx_);
+    if (queue_[active_idx_].size() == 0) return false;
+    queue_[active_idx_].pop();
+    return true;
 }
 
 template <class ValueType, class Container>
