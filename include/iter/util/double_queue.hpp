@@ -2,6 +2,7 @@
 #define ITER_DOUBLE_QUEUE_HPP
 
 #include <mutex>
+#include <queue>
 #include <deque>
 #include <utility>
 
@@ -9,9 +10,12 @@ namespace iter {
 
 template <class ValueType, class Container = std::deque <ValueType>>
 class DoubleQueue {
+private:
+    typedef std::queue <ValueType, Container> Queue;
+
 public:
     DoubleQueue();
-    Container* Get();
+    Queue* Get();
     void Push(const ValueType& val);
     void Push(ValueType&& val);
     // Return false if the active queue is empty.
@@ -19,7 +23,7 @@ public:
     void Switch();
 
 private:
-    Container queue_[2];
+    Queue queue_[2];
     int active_idx_;
     std::mutex mtx_;
 };
@@ -28,7 +32,7 @@ template <class ValueType, class Container>
 DoubleQueue <ValueType, Container>::DoubleQueue():active_idx_(0){}
 
 template <class ValueType, class Container>
-Container* DoubleQueue <ValueType, Container>::Get() {
+typename DoubleQueue <ValueType, Container>::Queue* DoubleQueue <ValueType, Container>::Get() {
     return &queue_[active_idx_];
 }
 
