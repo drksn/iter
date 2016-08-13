@@ -76,6 +76,8 @@ TEST_F(FileKeeperTest, MoveCoverTest) {
 TEST_F(FileKeeperTest, MoveSelfTest) {
     std::string cmd = "mv " + filename + " " + filename + ".tmp2";
     system(cmd.c_str());
+    usleep(1e5);
+
     std::string text_test = "BILIBILI_EYE\n";
     bool write_ret = FileWriter()(text_test, filename+".tmp2");
     EXPECT_TRUE(write_ret);
