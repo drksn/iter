@@ -47,25 +47,17 @@ Both ```FileReader``` and ```SampleLoadFunc``` are acceptable.
 
 ##### iter::FileKeeper::FileKeeper #####
 ```cpp
-FileKeeper(const std::string& filename);
+template <class ...Types>
+FileKeeper(const std::string& filename, Types&& args);
 ```
-```cpp
-template <class LoadFuncInit, class ...Types>
-FileKeeper(const std::string& filename, LoadFuncInit&& load_func_init);
-```
-If ```LoadFunc``` have non-parameter constructor, your can use the first constructor.
 
-The second constructor use the following operation to construct ```LoadFunc```:
-```cpp
-new LoadFunc(load_func_init)
-```
 For example:
 ```cpp
 FileKeeper <FileReader, std::string> file_keeper("test.txt");
 ```
 ```cpp
 bool read_file(const std::string&, std::string&);
-FileKeeper <SampleLoadFunc, std::string> file_keeper("test.txt", read_file, "");
+FileKeeper <SampleLoadFunc, std::string> file_keeper("test.txt", read_file);
 ```
 
 In addition, if ```LoadFunc``` defined ```second_argument_type```, the following operation is equivalent:
@@ -135,6 +127,5 @@ Get result = File keeper modified.
 stderr:
 ```
 [INFO][2016-07-03T20:25:22.887+0800] msg=Auto load success.||filename=file_keeper.test
-[INFO][2016-07-03T20:25:22.888+0800] msg=Event triggered.||filename=file_keeper.test||event_mask=2
 [INFO][2016-07-03T20:25:22.888+0800] msg=Auto load success.||filename=file_keeper.test
 ```

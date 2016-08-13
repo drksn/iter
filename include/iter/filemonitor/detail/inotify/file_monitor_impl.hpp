@@ -88,7 +88,7 @@ bool FileMonitor::Impl::Register(
         int owner_id, const std::string& filename, uint32_t event_mask) {
     std::lock_guard <std::mutex> lck(mtx_);
     int watcher_fd = inotify_add_watch(
-    inotify_fd_, filename.c_str(), event_mask);
+        inotify_fd_, filename.c_str(), event_mask);
     if (watcher_fd == -1) {
         ITER_WARN_KV(MSG("Add watcher failed."), KV(errno), KV(filename));
         return false;
