@@ -8,11 +8,7 @@
 
 namespace iter {
 
-struct FileEvent {
-    uint32_t mask;
-    uint32_t cookie;
-    std::string name;
-};
+struct FileEvent;
 
 class FileMonitorBase {
 public:

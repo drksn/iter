@@ -14,6 +14,12 @@
 
 namespace iter {
 
+struct FileEvent {
+    uint32_t mask;
+    uint32_t cookie;
+    std::string name;
+};
+
 class FileMonitor : public FileMonitorBase{
 public:
     FileMonitor(size_t thread_pool_size);
