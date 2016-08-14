@@ -9,8 +9,7 @@ INCLUDE=-I./ \
 CXXFLAGS=-isystem -Wall --std=c++11 -pthread -DDEBUG -g
 
 LIB=-L./googletest/ \
-	-lgtest -lgtest_main \
-	-luuid
+	-lgtest -lgtest_main
 
 VPATH+=./
 
