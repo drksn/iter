@@ -9,8 +9,6 @@
 #include <utility>
 #include <functional>
 
-#define ITER_FILE_KEEPER_EVENT_MASK   (IN_MODIFY | IN_DELETE_SELF | IN_MOVE_SELF)
-
 namespace iter {
 
 template <class LoadFunc, class Buffer>
@@ -33,9 +31,9 @@ FileKeeper <LoadFunc, Buffer>::FileKeeper(
     }
 
     using namespace std::placeholders;
-    callback = std::bind(&FileKeeper <LoadFunc, Buffer>::Callback, this, _1);
-    owner_id_ = g_file_monitor.Register(
-            filename_, callback, ITER_FILE_KEEPER_EVENT_MASK);
+    auto callback = std::bind(&FileKeeper <LoadFunc, Buffer>::Callback, this, _1);
+    node_ = {filename_, ITER_FILE_KEEPER_EVENT_MASK, callback};
+    owner_id_ = g_file_monitor.Register(node_);
     if (owner_id_ == -1) {
         ITER_WARN_KV(MSG("FileKeeper register failed."), KV(filename));
     }
@@ -86,8 +84,7 @@ void FileKeeper <LoadFunc, Buffer>::Callback(const FileEvent& file_event) {
     if (file_event.mask & (IN_DELETE_SELF | IN_MOVE_SELF)) {
         CheckFile();
         g_file_monitor.Remove(owner_id_);
-        owner_id_ = g_file_monitor.Register(
-                filename_, callback, ITER_FILE_KEEPER_EVENT_MASK);
+        owner_id_ = g_file_monitor.Register(node_);
     }
     bool ret = Load();
     if (ret) {

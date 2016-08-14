@@ -1,15 +1,11 @@
 #ifndef ITER_FILE_MONITOR_HPP
 #define ITER_FILE_MONITOR_HPP
 
-#include <iter/filemonitor/file_monitor_base.hpp>
 #include <iter/util/thread_pool.hpp>
 #include <functional>
-#include <map>
 #include <memory>
-#include <mutex>
 #include <string>
 
-#define ITER_FILE_MONITOR_EVENT_MASK 0xffffffff
 #define ITER_FILE_MONITOR_GLOB_THREAD_POOL_SIZE 3
 
 namespace iter {
@@ -20,17 +16,20 @@ struct FileEvent {
     std::string name;
 };
 
-class FileMonitor : public FileMonitorBase{
+class FileMonitor {
 public:
+    typedef struct {
+        std::string filename;
+        uint32_t event_mask;
+        std::function <void(const FileEvent&)> callback;
+    } Node;
+
     FileMonitor(size_t thread_pool_size);
     FileMonitor(const std::shared_ptr <ThreadPool>& thread_pool_ptr);
 
-    virtual int Register(
-        const std::string& filename,
-        const std::function <void(const FileEvent&)>& callback,
-        uint32_t event_mask = ITER_FILE_MONITOR_EVENT_MASK);
-
-    virtual void Remove(int owner_id);
+    bool IsRegistered(int owner_id);
+    int Register(const Node& node);
+    void Remove(int owner_id);
 
 private:
     class Impl;

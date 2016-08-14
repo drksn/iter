@@ -4,6 +4,7 @@
 #ifndef ITER_FILE_MONITOR_IMPL_HPP
 #define ITER_FILE_MONITOR_IMPL_HPP
 
+#include <iter/util/registry.hpp>
 #include <iter/log.hpp>
 #include <sys/inotify.h>
 #include <sys/select.h>
@@ -18,17 +19,18 @@ namespace iter {
 
 class FileMonitor::Impl {
 public:
-    Impl(std::map <int, Node>* owner_map_ptr,
-        const std::shared_ptr <ThreadPool>& thread_pool_ptr);
+    Impl(const std::shared_ptr <ThreadPool>& thread_pool_ptr);
     ~Impl();
-    bool Register(
-        int owner_id, const std::string& filename, uint32_t event_mask);
+
+    bool IsRegistered(int owner_id);
+    int Register(const Node& node);
     void Remove(int owner_id);
 
 private:
+    bool AddWatcher(int owner_id, const std::string& filename, uint32_t event_mask);
     void Callback();
 
-    std::map <int, Node>* owner_map_ptr_;
+    Registry <Node> registry_;
 
     std::map <int, int> oid_wfd_map_;
     std::map <int, int> wfd_oid_map_;
@@ -41,31 +43,27 @@ private:
 
 FileMonitor::FileMonitor(size_t thread_pool_size) {
     if (thread_pool_size < 2) thread_pool_size = 2; // NOTICE
-    impl_ = std::unique_ptr <Impl> (
-        new Impl(&owner_map_, std::make_shared <ThreadPool> (thread_pool_size)));
+    impl_ = std::unique_ptr <Impl> (new Impl(std::make_shared <ThreadPool> (thread_pool_size)));
 }
 
 FileMonitor::FileMonitor(const std::shared_ptr <ThreadPool>& thread_pool_ptr) {
-    impl_ = std::unique_ptr <Impl> (new Impl(&owner_map_, thread_pool_ptr));
+    impl_ = std::unique_ptr <Impl> (new Impl(thread_pool_ptr));
 }
 
-int FileMonitor::Register(
-        const std::string& filename,
-        const std::function <void(const FileEvent&)>& callback,
-        uint32_t event_mask) {
-    int owner_id = FileMonitorBase::Register(filename, callback, event_mask);
-    bool ret = impl_->Register(owner_id, filename, event_mask);
-    return ret ? owner_id : -1;
+bool FileMonitor::IsRegistered(int owner_id) {
+    return impl_->IsRegistered(owner_id);
+}
+
+int FileMonitor::Register(const Node& node) {
+    return impl_->Register(node);
 }
 
 void FileMonitor::Remove(int owner_id) {
-    FileMonitorBase::Remove(owner_id);
     impl_->Remove(owner_id);
 }
 
-FileMonitor::Impl::Impl(std::map <int, Node>* owner_map_ptr,
-        const std::shared_ptr <ThreadPool>& thread_pool_ptr)
-        : owner_map_ptr_(owner_map_ptr), thread_pool_ptr_(thread_pool_ptr) {
+FileMonitor::Impl::Impl(const std::shared_ptr <ThreadPool>& thread_pool_ptr)
+        : thread_pool_ptr_(thread_pool_ptr) {
     shutdown_ = false;
     inotify_fd_ = inotify_init();
     if (inotify_fd_ == -1) {
@@ -84,7 +82,12 @@ FileMonitor::Impl::~Impl() {
     }
 }
 
-bool FileMonitor::Impl::Register(
+bool FileMonitor::Impl::IsRegistered(int owner_id) {
+    auto tmp = registry_.Get();
+    return tmp->find(owner_id) != tmp->end();
+}
+
+bool FileMonitor::Impl::AddWatcher(
         int owner_id, const std::string& filename, uint32_t event_mask) {
     std::lock_guard <std::mutex> lck(mtx_);
     int watcher_fd = inotify_add_watch(
@@ -96,6 +99,12 @@ bool FileMonitor::Impl::Register(
     oid_wfd_map_.emplace(owner_id, watcher_fd);
     wfd_oid_map_.emplace(watcher_fd, owner_id);
     return true;
+}
+
+int FileMonitor::Impl::Register(const Node& node) {
+    int owner_id = registry_.Register(node);
+    bool ret = AddWatcher(owner_id, node.filename, node.event_mask);
+    return ret ? owner_id : -1;
 }
 
 void FileMonitor::Impl::Remove(int owner_id) {
@@ -146,8 +155,8 @@ void FileMonitor::Impl::Callback() {
                 if (wit == wfd_oid_map_.end()) continue;
 
                 int owner_id = wit->second;
-                auto oit = owner_map_ptr_->find(owner_id);
-                if (oit == owner_map_ptr_->end()) continue;
+                auto oit = registry_.Get()->find(owner_id);
+                if (oit == registry_.Get()->end()) continue;
 
                 node = oit->second;
             }

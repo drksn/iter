@@ -8,6 +8,8 @@
 #include <mutex>
 #include <type_traits>
 
+#define ITER_FILE_KEEPER_EVENT_MASK   (IN_MODIFY | IN_DELETE_SELF | IN_MOVE_SELF)
+
 namespace iter {
 
 template <class LoadFunc, class Buffer =
@@ -30,7 +32,8 @@ private:
     bool CheckFile();
     bool Load();
     void Callback(const FileEvent& file_event);
-    std::function <void(const FileEvent&)> callback;
+
+    FileMonitor::Node node_;
 
     std::string filename_;
     std::unique_ptr <LoadFunc> load_func_ptr_;
