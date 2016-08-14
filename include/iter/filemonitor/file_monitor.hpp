@@ -6,8 +6,6 @@
 #include <memory>
 #include <string>
 
-#define ITER_FILE_MONITOR_GLOB_THREAD_POOL_SIZE 3
-
 namespace iter {
 
 struct FileEvent {
@@ -35,8 +33,6 @@ private:
     class Impl;
     std::unique_ptr <Impl> impl_;
 };
-
-static FileMonitor g_file_monitor(ITER_FILE_MONITOR_GLOB_THREAD_POOL_SIZE);
 
 } // namespace iter
 

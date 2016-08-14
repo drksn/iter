@@ -9,6 +9,7 @@
 #include <type_traits>
 
 #define ITER_FILE_KEEPER_EVENT_MASK   (IN_MODIFY | IN_DELETE_SELF | IN_MOVE_SELF)
+#define ITER_FILE_KEEPER_THREAD_POOL_SIZE 3
 
 namespace iter {
 
@@ -39,7 +40,12 @@ private:
     std::unique_ptr <LoadFunc> load_func_ptr_;
     std::mutex mtx_;
     int owner_id_;
+
+    static FileMonitor g_file_monitor; // NOTICE
 };
+
+template <class LoadFunc, class Buffer>
+FileMonitor FileKeeper <LoadFunc, Buffer>::g_file_monitor(ITER_FILE_KEEPER_THREAD_POOL_SIZE);
 
 } // namespace iter
 
