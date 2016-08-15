@@ -2,11 +2,11 @@
 
 ```FileKeeper``` using double buffer for hot loading, and it will parse the file to your custom structures automatically.
 
-During initialization, ```FileKeeper```will register to a singleton```FileLoaderManager```, and during deconstruction, it will deregister from ```FileLoaderManager```.
+During initialization, ```FileKeeper``` will register to a global ```FileMonitor``` instance, and during deconstruction, it will deregister from it.
 
-```FileLoaderManager``` will raise a watcher thread and using ```inotify``` to listen the file modification events.
+```FileMonitor``` will raise a thread pool (default size is 3) and using ```inotify``` (in Linux) to listen the file system events.
 
-When modification events occur, the registered ```FileKeeper``` will reload immediatelly.
+When modification events occured, the registered ```FileKeeper``` will reload immediatelly.
 
 #### Definition ####
 ```cpp
@@ -44,6 +44,7 @@ Both ```FileReader``` and ```SampleLoadFunc``` are acceptable.
 | ------ | ------ |
 | (constructor) | Construct function. |
 | Get | Get the const shared pointer of buffer. |
+| operator bool | Validation check. |
 
 ##### iter::FileKeeper::FileKeeper #####
 ```cpp
@@ -79,6 +80,12 @@ By calling ```Get```, you can get the const shared pointer of your structure ```
 So, by calling ```std::shared_ptr::unique()```, we can know whether the buffer is released by all users.
 
 If the buffer is not the latest and released by all users, ```FileKeeper``` will release this buffer for the coming new data.
+
+##### iter::FileKeeper::operator bool #####
+```cpp
+operator bool();
+```
+Check whether it is registered on ```FileMonitor``` successfully.
 
 #### Example ####
 ```cpp
