@@ -50,6 +50,11 @@ auto FileKeeper <LoadFunc, Buffer>::Get() -> decltype(buffer_mgr_ptr_->Get()) {
 }
 
 template <class LoadFunc, class Buffer>
+FileKeeper <LoadFunc, Buffer>::operator bool() {
+    return owner_id_ != -1;
+}
+
+template <class LoadFunc, class Buffer>
 bool FileKeeper <LoadFunc, Buffer>::CheckFile() {
     struct stat f_stat;
     if (stat(filename_.c_str(), &f_stat) != 0) {

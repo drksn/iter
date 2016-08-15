@@ -29,6 +29,9 @@ public:
     // if buffer is empty, return NULL.
     auto Get() -> decltype(buffer_mgr_ptr_->Get());
 
+    // Validation check.
+    operator bool ();
+
 private:
     bool CheckFile();
     bool Load();
