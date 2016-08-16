@@ -48,8 +48,10 @@ Both ```FileReader``` and ```SampleLoadFunc``` are acceptable.
 
 ##### iter::FileKeeper::FileKeeper #####
 ```cpp
-template <class ...Types>
-FileKeeper(const std::string& filename, Types&& args);
+FileKeeper(
+    const std::string& filename,
+    const LoadFunc& load_func = LoadFunc(),
+    const std::shared_ptr <FileMonitor>& file_monitor_ptr = std::make_shared <FileMonitor> ());
 ```
 
 For example:

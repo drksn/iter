@@ -9,7 +9,6 @@
 #include <type_traits>
 
 #define ITER_FILE_KEEPER_EVENT_MASK   (IN_MODIFY | IN_DELETE_SELF | IN_MOVE_SELF)
-#define ITER_FILE_KEEPER_THREAD_POOL_SIZE 3
 
 namespace iter {
 
@@ -18,16 +17,18 @@ template <class LoadFunc, class Buffer =
 class FileKeeper {
 private:
     typedef DoubleBuffer <Buffer> BufferMgr;
-    std::unique_ptr <BufferMgr> buffer_mgr_ptr_;
+    BufferMgr buffer_mgr_;
 
 public:
-    template <class ...Types>
-    FileKeeper(const std::string& filename, Types&& ...args);
+    FileKeeper(
+        const std::string& filename,
+        const LoadFunc& load_func = LoadFunc(), // NOTICE
+        const std::shared_ptr <FileMonitor>& file_monitor_ptr = std::shared_ptr <FileMonitor>());
 
     ~FileKeeper();
     // Get the const shared pointer of buffer,
     // if buffer is empty, return NULL.
-    auto Get() -> decltype(buffer_mgr_ptr_->Get());
+    auto Get() -> decltype(buffer_mgr_.Get());
 
     // Validation check.
     operator bool ();
@@ -38,17 +39,21 @@ private:
     void Callback(const FileEvent& file_event);
 
     FileMonitor::Node node_;
+    std::shared_ptr <FileMonitor> file_monitor_ptr_;
 
     std::string filename_;
     std::unique_ptr <LoadFunc> load_func_ptr_;
     std::mutex mtx_;
     int owner_id_;
 
-    static FileMonitor g_file_monitor; // NOTICE
 };
 
-template <class LoadFunc, class Buffer>
-FileMonitor FileKeeper <LoadFunc, Buffer>::g_file_monitor(ITER_FILE_KEEPER_THREAD_POOL_SIZE);
+namespace file_keeper {
+
+static std::shared_ptr <FileMonitor> g_file_monitor_ptr; // NOTICE
+static std::mutex g_mtx;
+
+} // namespace file_keeper
 
 } // namespace iter
 
