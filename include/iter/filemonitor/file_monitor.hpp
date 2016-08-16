@@ -6,6 +6,8 @@
 #include <memory>
 #include <string>
 
+#define ITER_FILE_MONITOR_POOL_SIZE 4
+
 namespace iter {
 
 struct FileEvent {
@@ -22,12 +24,15 @@ public:
         std::function <void(const FileEvent&)> callback;
     } Node;
 
-    FileMonitor(size_t thread_pool_size);
+    FileMonitor(size_t thread_pool_size = ITER_FILE_MONITOR_POOL_SIZE);
     FileMonitor(const std::shared_ptr <ThreadPool>& thread_pool_ptr);
 
     bool IsRegistered(int owner_id);
     int Register(const Node& node);
     void Remove(int owner_id);
+
+    // Validation check.
+    operator bool();
 
 private:
     class Impl;

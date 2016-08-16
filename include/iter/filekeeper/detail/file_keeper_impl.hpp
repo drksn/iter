@@ -12,41 +12,59 @@
 namespace iter {
 
 template <class LoadFunc, class Buffer>
-template <class ...Types>
 FileKeeper <LoadFunc, Buffer>::FileKeeper(
-        const std::string& filename, Types&& ...args) {
+        const std::string& filename, const LoadFunc& load_func,
+        const std::shared_ptr <FileMonitor>& file_monitor_ptr) {
     filename_ = filename;
-    buffer_mgr_ptr_ = std::unique_ptr <BufferMgr> (new BufferMgr());
-    load_func_ptr_ = std::unique_ptr <LoadFunc> (
-            new LoadFunc(std::forward <Types> (args)...));
+    load_func_ptr_ = std::unique_ptr <LoadFunc> (new LoadFunc(load_func));
+
+    // If NULL, using glob file monitor.
+    if (!file_monitor_ptr) {
+        // Check the velidation of g_file_monitor.
+        using namespace file_keeper;
+        if (!g_file_monitor_ptr || !(*g_file_monitor_ptr)) {
+            std::lock_guard <std::mutex> lck(g_mtx); // Glob critical region.
+            if (!g_file_monitor_ptr || !(*g_file_monitor_ptr)) {
+                // Init g_file_monitor.
+                g_file_monitor_ptr = std::make_shared <FileMonitor> ();
+            }
+        }
+        file_monitor_ptr_ = g_file_monitor_ptr;
+    }
+    else {
+        file_monitor_ptr_ = file_monitor_ptr;
+    }
 
     CheckFile(); // NOTICE
 
     bool load_ret = Load();
     if (load_ret) {
-        ITER_INFO_KV(MSG("Initial-loading success."), KV(filename));
+        ITER_INFO_KV(MSG("Initial-loading success."), KV("filename", filename_));
     }
     else {
-        ITER_WARN_KV(MSG("Initial-loading failed."), KV(filename));
+        ITER_WARN_KV(MSG("Initial-loading failed."), KV("filename", filename_));
     }
 
+    // Gen Node.
     using namespace std::placeholders;
     auto callback = std::bind(&FileKeeper <LoadFunc, Buffer>::Callback, this, _1);
     node_ = {filename_, ITER_FILE_KEEPER_EVENT_MASK, callback};
-    owner_id_ = g_file_monitor.Register(node_);
+
+    // Register to file monitor.
+    owner_id_ = file_monitor_ptr_->Register(node_);
     if (owner_id_ == -1) {
-        ITER_WARN_KV(MSG("FileKeeper register failed."), KV(filename));
+        ITER_WARN_KV(MSG("FileKeeper register failed."), KV("filename", filename_));
     }
 }
 
 template <class LoadFunc, class Buffer>
 FileKeeper <LoadFunc, Buffer>::~FileKeeper() {
-    g_file_monitor.Remove(owner_id_);
+    file_monitor_ptr_->Remove(owner_id_);
 }
 
 template <class LoadFunc, class Buffer>
-auto FileKeeper <LoadFunc, Buffer>::Get() -> decltype(buffer_mgr_ptr_->Get()) {
-    return buffer_mgr_ptr_->Get();
+auto FileKeeper <LoadFunc, Buffer>::Get() -> decltype(buffer_mgr_.Get()) {
+    return buffer_mgr_.Get();
 }
 
 template <class LoadFunc, class Buffer>
@@ -70,13 +88,13 @@ bool FileKeeper <LoadFunc, Buffer>::CheckFile() {
 
 template <class LoadFunc, class Buffer>
 bool FileKeeper <LoadFunc, Buffer>::Load() {
-    if (!buffer_mgr_ptr_->Released()) return false;
+    if (!buffer_mgr_.Released()) return false;
 
     Buffer buffer_tmp;
     bool load_ret = (*load_func_ptr_)(filename_, buffer_tmp);
     if (!load_ret) return false;
 
-    bool update_ret = buffer_mgr_ptr_->Update(std::move(buffer_tmp));
+    bool update_ret = buffer_mgr_.Update(std::move(buffer_tmp));
     if (!update_ret) {
         ITER_WARN_KV(MSG("Load failed, previous buffer not released."));
         return false;
@@ -88,9 +106,13 @@ template <class LoadFunc, class Buffer>
 void FileKeeper <LoadFunc, Buffer>::Callback(const FileEvent& file_event) {
     if (file_event.mask & (IN_DELETE_SELF | IN_MOVE_SELF)) {
         CheckFile();
-        g_file_monitor.Remove(owner_id_);
-        owner_id_ = g_file_monitor.Register(node_);
+        file_monitor_ptr_->Remove(owner_id_);
+        owner_id_ = file_monitor_ptr_->Register(node_);
+        if (owner_id_ == -1) {
+            ITER_WARN_KV(MSG("FileKeeper register failed."), KV("filename", filename_));
+        }
     }
+
     bool ret = Load();
     if (ret) {
         ITER_INFO_KV(MSG("Auto-loading success."), KV("filename", filename_));

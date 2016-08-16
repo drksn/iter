@@ -22,11 +22,9 @@ public:
     Impl(const std::shared_ptr <ThreadPool>& thread_pool_ptr);
     ~Impl();
 
-    bool IsRegistered(int owner_id);
     int Register(const Node& node);
     void Remove(int owner_id);
 
-private:
     bool AddWatcher(int owner_id, const std::string& filename, uint32_t event_mask);
     void Callback();
 
@@ -51,7 +49,8 @@ FileMonitor::FileMonitor(const std::shared_ptr <ThreadPool>& thread_pool_ptr) {
 }
 
 bool FileMonitor::IsRegistered(int owner_id) {
-    return impl_->IsRegistered(owner_id);
+    auto tmp = impl_->registry_.Get();
+    return tmp->find(owner_id) != tmp->end();
 }
 
 int FileMonitor::Register(const Node& node) {
@@ -60,6 +59,10 @@ int FileMonitor::Register(const Node& node) {
 
 void FileMonitor::Remove(int owner_id) {
     impl_->Remove(owner_id);
+}
+
+FileMonitor::operator bool() {
+    return impl_->inotify_fd_ != -1;
 }
 
 FileMonitor::Impl::Impl(const std::shared_ptr <ThreadPool>& thread_pool_ptr)
@@ -80,11 +83,6 @@ FileMonitor::Impl::~Impl() {
     if (ret == -1) {
         ITER_ERROR_KV(MSG("Inotify close failed."), KV(errno));
     }
-}
-
-bool FileMonitor::Impl::IsRegistered(int owner_id) {
-    auto tmp = registry_.Get();
-    return tmp->find(owner_id) != tmp->end();
 }
 
 bool FileMonitor::Impl::AddWatcher(
