@@ -13,8 +13,9 @@ namespace iter {
 
 template <class LoadFunc, class Buffer>
 FileKeeper <LoadFunc, Buffer>::FileKeeper(
-        const std::string& filename, const LoadFunc& load_func,
-        const std::shared_ptr <FileMonitor>& file_monitor_ptr) {
+        const std::string& filename,
+        LoadFunc load_func,
+        std::shared_ptr <FileMonitor> file_monitor_ptr) {
     filename_ = filename;
     load_func_ptr_ = std::unique_ptr <LoadFunc> (new LoadFunc(load_func));
 
