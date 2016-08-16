@@ -25,7 +25,7 @@ public:
     } Node;
 
     FileMonitor(size_t thread_pool_size = ITER_FILE_MONITOR_POOL_SIZE);
-    FileMonitor(const std::shared_ptr <ThreadPool>& thread_pool_ptr);
+    FileMonitor(std::shared_ptr <ThreadPool> thread_pool_ptr);
 
     bool IsRegistered(int owner_id);
     int Register(const Node& node);
