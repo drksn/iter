@@ -22,8 +22,8 @@ private:
 public:
     FileKeeper(
         const std::string& filename,
-        LoadFunc load_func = LoadFunc(), // NOTICE
-        std::shared_ptr <FileMonitor> file_monitor_ptr = std::shared_ptr <FileMonitor>());
+        const LoadFunc& load_func = LoadFunc(), // NOTICE
+        const std::shared_ptr <FileMonitor>& file_monitor_ptr = std::shared_ptr <FileMonitor>());
 
     ~FileKeeper();
     // Get the const shared pointer of buffer,

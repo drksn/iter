@@ -19,7 +19,7 @@ namespace iter {
 
 class FileMonitor::Impl {
 public:
-    Impl(std::shared_ptr <ThreadPool> thread_pool_ptr);
+    Impl(const std::shared_ptr <ThreadPool>& thread_pool_ptr);
     ~Impl();
 
     int Register(const Node& node);
@@ -44,7 +44,7 @@ FileMonitor::FileMonitor(size_t thread_pool_size) {
     impl_ = std::unique_ptr <Impl> (new Impl(std::make_shared <ThreadPool> (thread_pool_size)));
 }
 
-FileMonitor::FileMonitor(std::shared_ptr <ThreadPool> thread_pool_ptr) {
+FileMonitor::FileMonitor(const std::shared_ptr <ThreadPool>& thread_pool_ptr) {
     impl_ = std::unique_ptr <Impl> (new Impl(thread_pool_ptr));
 }
 
@@ -65,7 +65,7 @@ FileMonitor::operator bool() {
     return impl_->inotify_fd_ != -1;
 }
 
-FileMonitor::Impl::Impl(std::shared_ptr <ThreadPool> thread_pool_ptr)
+FileMonitor::Impl::Impl(const std::shared_ptr <ThreadPool>& thread_pool_ptr)
         : thread_pool_ptr_(thread_pool_ptr) {
     shutdown_ = false;
     inotify_fd_ = inotify_init();
