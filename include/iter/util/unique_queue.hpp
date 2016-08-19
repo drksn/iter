@@ -31,6 +31,7 @@ UniqueQueue <ValueType, Container>::UniqueQueue()
 
 template <class ValueType, class Container>
 std::unique_ptr <typename UniqueQueue <ValueType, Container>::Queue> UniqueQueue <ValueType, Container>::Get() {
+    std::lock_guard <std::mutex> lck(mtx_);
     auto tmp = std::move(queue_ptr_);
     queue_ptr_ = std::unique_ptr <Queue>(new Queue());
     return tmp;
