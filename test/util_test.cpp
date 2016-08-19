@@ -55,3 +55,23 @@ TEST(UtilTest, TimeKeeper) {
     double s_i2 = tk.GetElapsedTime <double, std::ratio <1, 1>>();
     EXPECT_TRUE(Equal(s_i2, 0.2, 0.02));
 }
+
+TEST(UtilTest, UniqueQueue) {
+    UniqueQueue <int> uq;
+    uq.Push(1);
+    uq.Push(2);
+    auto t1 = uq.Get();
+
+    EXPECT_EQ(t1->front(), 1);
+    t1->pop();
+    EXPECT_EQ(t1->front(), 2);
+    t1->pop();
+    EXPECT_TRUE(t1->empty());
+
+    uq.Push(3);
+    auto t2 = uq.Get();
+    EXPECT_EQ(t2->front(), 3);
+    t2->pop();
+    EXPECT_TRUE(t2->empty());
+}
+

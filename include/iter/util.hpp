@@ -2,7 +2,7 @@
 #define ITER_UTIL_HPP_INCLUDED
 
 #include <iter/util/registry.hpp>
-#include <iter/util/double_queue.hpp>
+#include <iter/util/unique_queue.hpp>
 #include <iter/util/double_buffer.hpp>
 #include <iter/util/fmtstr.hpp>
 #include <iter/util/kvstr.hpp>
