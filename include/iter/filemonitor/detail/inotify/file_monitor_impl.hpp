@@ -10,6 +10,10 @@
 #include <sys/select.h>
 #include <sys/time.h>
 
+#include <map>
+#include <mutex>
+#include <thread>
+
 #define ITER_FILE_MONITOR_SELECT_TIMEOUT_SEC 1
 
 #define ITER_INOTIFY_EVENT_SIZE (sizeof(struct inotify_event))
@@ -35,12 +39,12 @@ public:
     int inotify_fd_;
 
     std::shared_ptr <ThreadPool> thread_pool_ptr_;
+    std::unique_ptr <std::thread> watcher_thread_ptr_;
     std::mutex mtx_;
     bool shutdown_;
 };
 
 FileMonitor::FileMonitor(size_t thread_pool_size) {
-    if (thread_pool_size < 2) thread_pool_size = 2; // NOTICE
     impl_ = std::unique_ptr <Impl> (new Impl(std::make_shared <ThreadPool> (thread_pool_size)));
 }
 
@@ -67,17 +71,20 @@ FileMonitor::operator bool() {
 FileMonitor::Impl::Impl(const std::shared_ptr <ThreadPool>& thread_pool_ptr)
         : thread_pool_ptr_(thread_pool_ptr) {
     shutdown_ = false;
+    watcher_thread_ptr_ = std::unique_ptr <std::thread>(new std::thread(
+            std::bind(&FileMonitor::Impl::Callback, this))); // Set up watcher thread.
+
     inotify_fd_ = inotify_init();
     if (inotify_fd_ == -1) {
         ITER_ERROR_KV(MSG("Inotify init failed."), KV(errno));
         return;
     }
-    thread_pool_ptr_->PushTask(
-        std::bind(&FileMonitor::Impl::Callback, this));
 }
 
 FileMonitor::Impl::~Impl() {
     shutdown_ = true;
+    watcher_thread_ptr_->join();
+
     int ret = close(inotify_fd_);
     if (ret == -1) {
         ITER_ERROR_KV(MSG("Inotify close failed."), KV(errno));

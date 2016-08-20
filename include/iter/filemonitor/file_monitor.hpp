@@ -6,7 +6,7 @@
 #include <memory>
 #include <string>
 
-#define ITER_FILE_MONITOR_POOL_SIZE 4
+#define ITER_FILE_MONITOR_POOL_SIZE 2
 
 namespace iter {
 
