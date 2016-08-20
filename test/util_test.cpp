@@ -56,6 +56,24 @@ TEST(UtilTest, TimeKeeper) {
     EXPECT_TRUE(Equal(s_i2, 0.2, 0.02));
 }
 
+TEST(UtilTest, DoubleBuffer) {
+    DoubleBuffer <std::string> db;
+    std::string a = "girigiri", b = "bilibili";
+
+    bool ret1 = db.Update(a);
+    EXPECT_TRUE(ret1);
+
+    auto ap = db.Get();
+    EXPECT_EQ(*ap, a);
+
+    std::unique_ptr <std::string> up(new std::string(b));
+    bool ret2 = db.Update(std::move(up));
+    EXPECT_TRUE(ret2);
+
+    auto bp = db.Get();
+    EXPECT_EQ(*bp, b);
+}
+
 TEST(UtilTest, UniqueQueue) {
     UniqueQueue <int> uq;
     uq.Push(1);
