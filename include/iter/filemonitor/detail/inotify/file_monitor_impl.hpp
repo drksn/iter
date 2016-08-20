@@ -49,8 +49,7 @@ FileMonitor::FileMonitor(const std::shared_ptr <ThreadPool>& thread_pool_ptr) {
 }
 
 bool FileMonitor::IsRegistered(int owner_id) {
-    auto tmp = impl_->registry_.Get();
-    return tmp->find(owner_id) != tmp->end();
+    return impl_->registry_.IsRegistered(owner_id);
 }
 
 int FileMonitor::Register(const Node& node) {
@@ -153,10 +152,8 @@ void FileMonitor::Impl::Callback() {
                 if (wit == wfd_oid_map_.end()) continue;
 
                 int owner_id = wit->second;
-                auto oit = registry_.Get()->find(owner_id);
-                if (oit == registry_.Get()->end()) continue;
-
-                node = oit->second;
+                if (!registry_.IsRegistered(owner_id)) continue;
+                node = registry_.Get(owner_id);
             }
             if (!(node.event_mask & event->mask)) continue;
 
