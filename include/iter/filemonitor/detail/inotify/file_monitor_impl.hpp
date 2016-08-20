@@ -44,7 +44,7 @@ public:
     bool shutdown_;
 };
 
-FileMonitor::FileMonitor(size_t thread_pool_size) {
+FileMonitor::FileMonitor(int thread_pool_size) {
     impl_ = std::unique_ptr <Impl> (new Impl(std::make_shared <ThreadPool> (thread_pool_size)));
 }
 
