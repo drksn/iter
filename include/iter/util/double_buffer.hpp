@@ -24,6 +24,7 @@ public:
     // if the inactive buffer is not released by all users, return false.
     bool Update(const Buffer& buffer);
     bool Update(Buffer&& buffer);
+    bool Update(std::unique_ptr <Buffer> buffer_ptr);
     // Disable copy constructor and copy assignment operator.
     DoubleBuffer(const DoubleBuffer&) = delete;
     DoubleBuffer& operator = (const DoubleBuffer&) = delete;
@@ -60,8 +61,8 @@ bool DoubleBuffer <Buffer>::Released() {
 
 template <class Buffer>
 std::shared_ptr <typename std::add_const <Buffer>::type> DoubleBuffer <Buffer>::Get() {
-    if (Empty())
-        return std::shared_ptr <typename std::add_const <Buffer>::type> (); // Return NULL.
+    // If empty, return NULL.
+    if (Empty()) return std::shared_ptr <typename std::add_const <Buffer>::type> ();
     return buffer_ptr_[active_idx_];
 }
 
@@ -80,6 +81,16 @@ bool DoubleBuffer <Buffer>::Update(Buffer&& buffer) {
     if (!Released()) return false;
     std::lock_guard <std::mutex> lck(mtx_);
     *buffer_ptr_[active_idx_ ^ 1] = std::move(buffer);
+    active_idx_ ^= 1;
+    is_empty_ = false;
+    return true;
+}
+
+template <class Buffer>
+bool DoubleBuffer <Buffer>::Update(std::unique_ptr <Buffer> buffer_ptr) {
+    if (!Released()) return false;
+    std::lock_guard <std::mutex> lck(mtx_);
+    buffer_ptr_[active_idx_ ^ 1] = std::move(buffer_ptr);
     active_idx_ ^= 1;
     is_empty_ = false;
     return true;

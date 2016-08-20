@@ -14,13 +14,19 @@ namespace iter {
 
 class ThreadPool {
 public:
-    ThreadPool(size_t pool_size = 4);
+    // If pool_size < 1, it will be fixed to 1.
+    ThreadPool(int pool_size = 1);
     ~ThreadPool();
+
+    // Get the size of thread pool.
+    int Size();
+
     template <class Func, class ...Args>
     auto PushTask(Func&& f, Args&& ...args)
         -> std::future <typename std::result_of <Func(Args...)>::type>;
 
 private:
+    int pool_size_;
     bool shutdown_;
     std::vector <std::thread> thread_list_;
     std::queue <std::function <void()> > task_queue_;
@@ -28,9 +34,9 @@ private:
     std::condition_variable cv_;
 };
 
-ThreadPool::ThreadPool(size_t pool_size) {
-    shutdown_ = false;
-    for (size_t i = 0; i < pool_size; i++) {
+ThreadPool::ThreadPool(int pool_size) :
+        pool_size_(std::max(pool_size, 1)), shutdown_(false) {
+    for (int i = 0; i < pool_size; i++) {
         thread_list_.emplace_back(
             [&] {
                 while (1) {
@@ -56,6 +62,10 @@ ThreadPool::~ThreadPool() {
     }
     cv_.notify_all();
     for (auto& t : thread_list_) t.join();
+}
+
+int ThreadPool::Size() {
+    return pool_size_;
 }
 
 template <class Func, class ...Args>
