@@ -10,6 +10,10 @@
 #include <sys/select.h>
 #include <sys/time.h>
 
+#include <map>
+#include <mutex>
+#include <thread>
+
 #define ITER_FILE_MONITOR_SELECT_TIMEOUT_SEC 1
 
 #define ITER_INOTIFY_EVENT_SIZE (sizeof(struct inotify_event))
@@ -35,12 +39,12 @@ public:
     int inotify_fd_;
 
     std::shared_ptr <ThreadPool> thread_pool_ptr_;
+    std::unique_ptr <std::thread> watcher_thread_ptr_;
     std::mutex mtx_;
     bool shutdown_;
 };
 
-FileMonitor::FileMonitor(size_t thread_pool_size) {
-    if (thread_pool_size < 2) thread_pool_size = 2; // NOTICE
+FileMonitor::FileMonitor(int thread_pool_size) {
     impl_ = std::unique_ptr <Impl> (new Impl(std::make_shared <ThreadPool> (thread_pool_size)));
 }
 
@@ -49,8 +53,7 @@ FileMonitor::FileMonitor(const std::shared_ptr <ThreadPool>& thread_pool_ptr) {
 }
 
 bool FileMonitor::IsRegistered(int owner_id) {
-    auto tmp = impl_->registry_.Get();
-    return tmp->find(owner_id) != tmp->end();
+    return impl_->registry_.IsRegistered(owner_id);
 }
 
 int FileMonitor::Register(const Node& node) {
@@ -68,17 +71,20 @@ FileMonitor::operator bool() {
 FileMonitor::Impl::Impl(const std::shared_ptr <ThreadPool>& thread_pool_ptr)
         : thread_pool_ptr_(thread_pool_ptr) {
     shutdown_ = false;
+    watcher_thread_ptr_ = std::unique_ptr <std::thread>(new std::thread(
+            std::bind(&FileMonitor::Impl::Callback, this))); // Set up watcher thread.
+
     inotify_fd_ = inotify_init();
     if (inotify_fd_ == -1) {
         ITER_ERROR_KV(MSG("Inotify init failed."), KV(errno));
         return;
     }
-    thread_pool_ptr_->PushTask(
-        std::bind(&FileMonitor::Impl::Callback, this));
 }
 
 FileMonitor::Impl::~Impl() {
     shutdown_ = true;
+    watcher_thread_ptr_->join();
+
     int ret = close(inotify_fd_);
     if (ret == -1) {
         ITER_ERROR_KV(MSG("Inotify close failed."), KV(errno));
@@ -153,10 +159,8 @@ void FileMonitor::Impl::Callback() {
                 if (wit == wfd_oid_map_.end()) continue;
 
                 int owner_id = wit->second;
-                auto oit = registry_.Get()->find(owner_id);
-                if (oit == registry_.Get()->end()) continue;
-
-                node = oit->second;
+                if (!registry_.IsRegistered(owner_id)) continue;
+                node = registry_.Get(owner_id);
             }
             if (!(node.event_mask & event->mask)) continue;
 

@@ -12,7 +12,12 @@ public:
     int Register(const Node& node);
     int Register(Node&& node);
     void Remove(int register_id);
-    const std::map <int, Node>* Get();
+
+    // Check whether it is registered.
+    bool IsRegistered(int register_id);
+
+    // Get the node correspounding to the register id.
+    Node Get(int register_id);
 
 private:
     std::map <int, Node> register_map_;
@@ -43,8 +48,13 @@ void Registry <Node>::Remove(int register_id) {
 }
 
 template <class Node>
-const std::map <int, Node>* Registry <Node>::Get() {
-    return &register_map_;
+bool Registry <Node>::IsRegistered(int register_id) {
+    return register_map_.find(register_id) != register_map_.end();
+}
+
+template <class Node>
+Node Registry <Node>::Get(int register_id) {
+    return register_map_.at(register_id);
 }
 
 } // namespace iter
