@@ -7,27 +7,27 @@
 
 namespace iter {
 
-Logger::Logger() {
+inline Logger::Logger() {
     fd_ = -1;
 }
 
-Logger::~Logger() {
+inline Logger::~Logger() {
     Close();
 }
 
-bool Logger::Init(const std::string& filename) {
+inline bool Logger::Init(const std::string& filename) {
     std::lock_guard <std::mutex> lck(mtx_);
     filename_ = filename;
     return Open() && GetIno(ino_);
 }
 
-void Logger::Print(const std::string& log) {
+inline void Logger::Print(const std::string& log) {
     std::lock_guard <std::mutex> lck(mtx_);
     Fix();
     Write(log);
 }
 
-void Logger::Fix() {
+inline void Logger::Fix() {
     if (filename_.size() == 0) return; // Not init.
     ino_t ino_tmp;
     bool ret = GetIno(ino_tmp);
@@ -38,14 +38,14 @@ void Logger::Fix() {
     }
 }
 
-bool Logger::GetIno(ino_t& ino) {
+inline bool Logger::GetIno(ino_t& ino) {
     struct stat statbuf;
     if (stat(filename_.c_str(), &statbuf) != 0) return false;
     ino = statbuf.st_ino;
     return true;
 }
 
-bool Logger::Open() {
+inline bool Logger::Open() {
     fd_ = open(filename_.c_str(),
             O_CREAT | O_APPEND | O_WRONLY | O_NONBLOCK,
             S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
@@ -57,7 +57,7 @@ bool Logger::Open() {
     return true;
 }
 
-void Logger::Close() {
+inline void Logger::Close() {
     if (fd_ == -1) return;
     if (close(fd_) != 0) {
         fprintf(stderr, "Logger close failed, errno=%d, fd=%d\n",
@@ -66,7 +66,7 @@ void Logger::Close() {
     fd_ = -1;
 }
 
-void Logger::Write(const std::string& log) {
+inline void Logger::Write(const std::string& log) {
     if (fd_ == -1) { // If fd is invalid, write to stderr.
         fprintf(stderr, "%s", log.c_str());
         return;
