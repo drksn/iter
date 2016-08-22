@@ -1,5 +1,5 @@
-#ifndef ITER_LOG_BASIC_HPP
-#define ITER_LOG_BASIC_HPP
+#ifndef ITER_LOG_UTIL_HPP
+#define ITER_LOG_UTIL_HPP
 
 #include <sys/time.h>
 #include <sys/stat.h>
@@ -48,4 +48,4 @@ static std::string LogHead(
 
 } // namespace iter
 
-#endif // ITER_LOG_BASIC_HPP
+#endif // ITER_LOG_UTIL_HPP

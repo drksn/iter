@@ -42,14 +42,16 @@ TEST(LogTest, Kv) {
     std::list <std::tuple <std::string, int>> lst =
         {std::make_tuple("list_1", 5), std::make_tuple("list_2", 6)};
     ITER_INFO_KV(MSG("map, vector and list test."), mp, vec, lst);
+
+    ITER_INFO_KV(MSG("Test one."));
 }
 
 TEST(LogTest, Fmt) {
-    ITER_DEBUG_FMT("Test: #%d: %s", 0, "girigiri eye.");
-    ITER_INFO_FMT("Test: #%d: %s", 1, "girigiri eye.");
-    ITER_WARN_FMT("Test: #%d: %s", 2, "girigiri eye.");
-    ITER_ERROR_FMT("Test: #%d: %s", 3, "girigiri eye.");
-    ITER_FATAL_FMT("Test: #%d: %s", 4, "girigiri eye.");
+    ITER_DEBUG("Test: #%d: %s", 0, "girigiri eye.");
+    ITER_INFO("Test: #%d: %s", 1, "girigiri eye.");
+    ITER_WARN("Test: #%d: %s", 2, "girigiri eye.");
+    ITER_ERROR("Test: #%d: %s", 3, "girigiri eye.");
+    ITER_FATAL("Test: #%d: %s", 4, "girigiri eye.");
 }
 
 TEST(LogTest, WriteFile) {
