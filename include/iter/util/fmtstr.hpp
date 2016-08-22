@@ -17,7 +17,7 @@ inline std::string&& FmtStr(std::string&& format) {
 }
 
 template<class ...Types>
-inline std::string FmtStr(const std::string& format, Types ...args) {
+inline std::string FmtStr(const std::string& format, Types&& ...args) {
     int n = format.size() << 1;
     std::unique_ptr<char[]> buf(new char[n]);
     int ret = snprintf(buf.get(), n, format.c_str(), args...);
