@@ -44,31 +44,31 @@ public:
     bool shutdown_;
 };
 
-FileMonitor::FileMonitor(int thread_pool_size) {
+inline FileMonitor::FileMonitor(int thread_pool_size) {
     impl_ = std::unique_ptr <Impl> (new Impl(std::make_shared <ThreadPool> (thread_pool_size)));
 }
 
-FileMonitor::FileMonitor(const std::shared_ptr <ThreadPool>& thread_pool_ptr) {
+inline FileMonitor::FileMonitor(const std::shared_ptr <ThreadPool>& thread_pool_ptr) {
     impl_ = std::unique_ptr <Impl> (new Impl(thread_pool_ptr));
 }
 
-bool FileMonitor::IsRegistered(int owner_id) {
+inline bool FileMonitor::IsRegistered(int owner_id) {
     return impl_->registry_.IsRegistered(owner_id);
 }
 
-int FileMonitor::Register(const Node& node) {
+inline int FileMonitor::Register(const Node& node) {
     return impl_->Register(node);
 }
 
-void FileMonitor::Remove(int owner_id) {
+inline void FileMonitor::Remove(int owner_id) {
     impl_->Remove(owner_id);
 }
 
-FileMonitor::operator bool() {
+inline FileMonitor::operator bool() {
     return impl_->inotify_fd_ != -1;
 }
 
-FileMonitor::Impl::Impl(const std::shared_ptr <ThreadPool>& thread_pool_ptr)
+inline FileMonitor::Impl::Impl(const std::shared_ptr <ThreadPool>& thread_pool_ptr)
         : thread_pool_ptr_(thread_pool_ptr) {
     shutdown_ = false;
     watcher_thread_ptr_ = std::unique_ptr <std::thread>(new std::thread(
@@ -81,7 +81,7 @@ FileMonitor::Impl::Impl(const std::shared_ptr <ThreadPool>& thread_pool_ptr)
     }
 }
 
-FileMonitor::Impl::~Impl() {
+inline FileMonitor::Impl::~Impl() {
     shutdown_ = true;
     watcher_thread_ptr_->join();
 
@@ -91,7 +91,7 @@ FileMonitor::Impl::~Impl() {
     }
 }
 
-bool FileMonitor::Impl::AddWatcher(
+inline bool FileMonitor::Impl::AddWatcher(
         int owner_id, const std::string& filename, uint32_t event_mask) {
     std::lock_guard <std::mutex> lck(mtx_);
     int watcher_fd = inotify_add_watch(
@@ -105,13 +105,13 @@ bool FileMonitor::Impl::AddWatcher(
     return true;
 }
 
-int FileMonitor::Impl::Register(const Node& node) {
+inline int FileMonitor::Impl::Register(const Node& node) {
     int owner_id = registry_.Register(node);
     bool ret = AddWatcher(owner_id, node.filename, node.event_mask);
     return ret ? owner_id : -1;
 }
 
-void FileMonitor::Impl::Remove(int owner_id) {
+inline void FileMonitor::Impl::Remove(int owner_id) {
     std::lock_guard <std::mutex> lck(mtx_);
     auto it = oid_wfd_map_.find(owner_id);
     if (it == oid_wfd_map_.end()) return;
@@ -125,7 +125,7 @@ void FileMonitor::Impl::Remove(int owner_id) {
     }
 }
 
-void FileMonitor::Impl::Callback() {
+inline void FileMonitor::Impl::Callback() {
     // 'select' settings.
     fd_set rfds;
     FD_ZERO(&rfds);

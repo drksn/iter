@@ -6,7 +6,7 @@
 
 namespace iter {
 
-bool FileReader::operator () (first_argument_type filename, second_argument_type content) {
+inline bool FileReader::operator () (first_argument_type filename, second_argument_type content) {
     std::ifstream in(filename.c_str(), std::ios::in | std::ios::binary);
     if (in) {
         try {
@@ -26,7 +26,7 @@ bool FileReader::operator () (first_argument_type filename, second_argument_type
     return false;
 }
 
-bool FileWriter::operator() (first_argument_type content, second_argument_type filename) {
+inline bool FileWriter::operator() (first_argument_type content, second_argument_type filename) {
    std::ofstream out(filename.c_str(), std::ios::out | std::ios::binary);
    if (out) {
         try {
