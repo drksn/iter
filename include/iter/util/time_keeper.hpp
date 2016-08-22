@@ -16,11 +16,11 @@ private:
     std::chrono::high_resolution_clock::time_point begin_;
 };
 
-TimeKeeper::TimeKeeper() {
+inline TimeKeeper::TimeKeeper() {
     Reset();
 }
 
-void TimeKeeper::Reset() {
+inline void TimeKeeper::Reset() {
     begin_ = std::chrono::high_resolution_clock::now();
 }
 

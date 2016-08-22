@@ -34,7 +34,7 @@ private:
     std::condition_variable cv_;
 };
 
-ThreadPool::ThreadPool(int pool_size) :
+inline ThreadPool::ThreadPool(int pool_size) :
         pool_size_(std::max(pool_size, 1)), shutdown_(false) {
     for (int i = 0; i < pool_size; i++) {
         thread_list_.emplace_back(
@@ -55,7 +55,7 @@ ThreadPool::ThreadPool(int pool_size) :
     }
 }
 
-ThreadPool::~ThreadPool() {
+inline ThreadPool::~ThreadPool() {
     { // Critical region.
         std::unique_lock <std::mutex> lck(mtx_);
         shutdown_ = true;
@@ -64,7 +64,7 @@ ThreadPool::~ThreadPool() {
     for (auto& t : thread_list_) t.join();
 }
 
-int ThreadPool::Size() {
+inline int ThreadPool::Size() {
     return pool_size_;
 }
 
