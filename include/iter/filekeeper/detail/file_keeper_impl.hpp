@@ -96,7 +96,7 @@ bool FileKeeper <LoadFunc, Buffer>::Load() {
 
     bool update_ret = buffer_mgr_.Update();
     if (!update_ret) {
-        ITER_WARN_KV(MSG("Load failed, previous buffer not released."));
+        ITER_WARN_KV(MSG("Load failed, reserved buffer not released."));
         return false;
     }
     return true;
