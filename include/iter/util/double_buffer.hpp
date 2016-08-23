@@ -15,7 +15,7 @@ public:
     DoubleBuffer();
 
     // If the reserved buffer is released by all users, return true;
-    bool IsReleased();
+    bool Released();
 
     // Get the const shared pointer of the active buffer.
     std::shared_ptr <typename std::add_const<Buffer>::type> Get();
@@ -53,7 +53,7 @@ DoubleBuffer <Buffer>::DoubleBuffer() : active_idx_(0) {
 }
 
 template <class Buffer>
-bool DoubleBuffer <Buffer>::IsReleased() {
+bool DoubleBuffer <Buffer>::Released() {
     return buffer_ptr_[active_idx_ ^ 1].unique();
 }
 
@@ -70,7 +70,7 @@ Buffer* DoubleBuffer <Buffer>::GetReservedBuffer() {
 template <class Buffer>
 bool DoubleBuffer <Buffer>::Update() {
     std::lock_guard <std::mutex> lck(mtx_);
-    if (!IsReleased()) return false;
+    if (!Released()) return false;
     active_idx_ ^= 1;
     return true;
 }
@@ -78,7 +78,7 @@ bool DoubleBuffer <Buffer>::Update() {
 template <class Buffer>
 bool DoubleBuffer <Buffer>::Update(const Buffer& buffer) {
     std::lock_guard <std::mutex> lck(mtx_);
-    if (!IsReleased()) return false;
+    if (!Released()) return false;
     *buffer_ptr_[active_idx_ ^ 1] = buffer;
     active_idx_ ^= 1;
     return true;
@@ -87,7 +87,7 @@ bool DoubleBuffer <Buffer>::Update(const Buffer& buffer) {
 template <class Buffer>
 bool DoubleBuffer <Buffer>::Update(Buffer&& buffer) {
     std::lock_guard <std::mutex> lck(mtx_);
-    if (!IsReleased()) return false;
+    if (!Released()) return false;
     *buffer_ptr_[active_idx_ ^ 1] = std::move(buffer);
     active_idx_ ^= 1;
     return true;
@@ -96,7 +96,7 @@ bool DoubleBuffer <Buffer>::Update(Buffer&& buffer) {
 template <class Buffer>
 bool DoubleBuffer <Buffer>::Update(std::unique_ptr <Buffer>&& buffer_ptr) {
     std::lock_guard <std::mutex> lck(mtx_);
-    if (!IsReleased()) return false;
+    if (!Released()) return false;
     buffer_ptr_[active_idx_ ^ 1] = std::move(buffer_ptr);
     active_idx_ ^= 1;
     return true;
