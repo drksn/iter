@@ -72,6 +72,18 @@ TEST(UtilTest, DoubleBuffer) {
 
     auto bp = db.Get();
     EXPECT_EQ(*bp, b);
+
+    auto ptr = db.GetReservedBuffer();
+    *ptr = a + b;
+    bool ret3 = db.Update();
+    EXPECT_FALSE(ret3);
+
+    ap.reset();
+    bool ret4 = db.Update();
+    EXPECT_TRUE(ret4);
+
+    auto abp = db.Get();
+    EXPECT_EQ(*abp, *ptr);
 }
 
 TEST(UtilTest, UniqueQueue) {

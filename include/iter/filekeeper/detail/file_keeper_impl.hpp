@@ -90,13 +90,13 @@ template <class LoadFunc, class Buffer>
 bool FileKeeper <LoadFunc, Buffer>::Load() {
     if (!buffer_mgr_.Released()) return false;
 
-    Buffer buffer_tmp;
-    bool load_ret = (*load_func_ptr_)(filename_, buffer_tmp);
+    auto reserved = buffer_mgr_.GetReservedBuffer();
+    bool load_ret = (*load_func_ptr_)(filename_, *reserved);
     if (!load_ret) return false;
 
-    bool update_ret = buffer_mgr_.Update(std::move(buffer_tmp));
+    bool update_ret = buffer_mgr_.Update();
     if (!update_ret) {
-        ITER_WARN_KV(MSG("Load failed, previous buffer not released."));
+        ITER_WARN_KV(MSG("Load failed, reserved buffer not released."));
         return false;
     }
     return true;
