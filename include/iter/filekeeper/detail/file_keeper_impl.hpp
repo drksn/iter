@@ -90,8 +90,8 @@ template <class LoadFunc, class Buffer>
 bool FileKeeper <LoadFunc, Buffer>::Load() {
     if (!buffer_mgr_.Released()) return false;
 
-    auto reserved = buffer_mgr_.GetReservedBuffer();
-    bool load_ret = (*load_func_ptr_)(filename_, *reserved);
+    Buffer* reserved = buffer_mgr_.GetReservedBuffer();
+    bool load_ret = (*load_func_ptr_)(filename_, reserved);
     if (!load_ret) return false;
 
     bool update_ret = buffer_mgr_.Update();
