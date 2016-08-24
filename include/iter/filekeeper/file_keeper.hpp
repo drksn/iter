@@ -13,7 +13,7 @@
 namespace iter {
 
 template <class LoadFunc, class Buffer =
-    typename std::remove_reference <typename LoadFunc::second_argument_type>::type>
+    typename std::remove_pointer <typename LoadFunc::second_argument_type>::type>
 class FileKeeper {
 private:
     typedef DoubleBuffer <Buffer> BufferMgr;
