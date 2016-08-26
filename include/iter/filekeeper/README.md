@@ -1,43 +1,41 @@
 ### iter::FileKeeper ###
 
-```FileKeeper``` using double buffer for hot loading, and it will parse the file to your custom structures automatically.
+```FileKeeper``` is using ```iter::DoubleBuffer``` for hot loading.
 
-During initialization, ```FileKeeper``` will register to a global ```FileMonitor``` instance, and during deconstruction, it will deregister from it.
+During initialization, ```FileKeeper``` will register to a  ```iter::FileMonitor``` instance. 
 
-```FileMonitor``` will raise a thread pool (default size is 3) and using ```inotify``` (in Linux) to listen the file system events.
-
-When modification events occured, the registered ```FileKeeper``` will reload immediatelly.
+When file modification events occured, ```FileKeeper``` will reload immediatelly.
 
 #### Definition ####
 ```cpp
-template <class LoadFunc, class Buffer> class FileKeeper;
+template <class LoadFunc, class Buffer =
+    typename std::remove_pointer <typename LoadFunc::second_argument_type>::type>
+class FileKeeper;
 ```
 The second template argument ```Buffer``` is your target type to store your data. 
 
-For example, if you want to load some dictionary, ```Buffer``` might be ```std::map <std::string, int>``` or your own type.
+For example, if you want to load some dictionary, ```Buffer``` might be ```std::map <std::string, int>```.
 
-
-The first template argument ```LoadFunc``` is the type of your load-functor, indicate the way to load data into your ```Buffer```.
+The first template argument ```LoadFunc``` is the type of your load-functor.
 
 The ```LoadFunc``` must defined:
 ```cpp
-bool operator () (const std::string& filename, Buffer& buffer);
+bool operator () (const std::string& filename, Buffer* buffer);
 ```
-FileKeeper will call this functor to load the data from files and parsed to the type```Buffer```.
+
+When file modification events occured, ```FileKeeper``` will call this functor and update ```iter::DoubleBuffer <Buffer>```.
 
 For example:
 ```cpp
-class FileReader {
+class FileReader : public std::binary_function <const std::string&, std::string*, bool> {
 public:
-  typedef const std::string& first_argument_type;
-  typedef std::string& second_argument_type;
   bool operator (first_argument_type filename, second_argument_type text);
 };
 ```
 ```cpp 
-typedef std::function <bool(const std::string&, Buffer&)> SampleLoadFunc;
+typedef std::function <bool(const std::string&, std::string*)> Loader;
 ```
-Both ```FileReader``` and ```SampleLoadFunc``` are acceptable.
+Both ```FileReader``` and ```Loader``` are valid template argument.
 
 #### Member functions ####
 | Member function | Description |
@@ -48,27 +46,20 @@ Both ```FileReader``` and ```SampleLoadFunc``` are acceptable.
 
 ##### iter::FileKeeper::FileKeeper #####
 ```cpp
+template <class LoadFunc>
 FileKeeper(
     const std::string& filename,
     const LoadFunc& load_func = LoadFunc(),
-    const std::shared_ptr <FileMonitor>& file_monitor_ptr = std::make_shared <FileMonitor> ());
+    const std::shared_ptr <FileMonitor>& file_monitor_ptr = std::shared_ptr <FileMonitor> ());
 ```
 
 For example:
 ```cpp
-FileKeeper <FileReader, std::string> file_keeper("test.txt");
-```
-```cpp
-bool read_file(const std::string&, std::string&);
-FileKeeper <SampleLoadFunc, std::string> file_keeper("test.txt", read_file);
-```
-
-In addition, if ```LoadFunc``` defined ```second_argument_type```, the following operation is equivalent:
-```cpp
 FileKeeper <FileReader> file_keeper("test.txt");
 ```
 ```cpp
-FileKeeper <SampleLoadFunc> file_keeper("test.txt", read_file, "");
+FileKeeper <Loader> file_keeper("test.txt", 
+    [](const std::string& filename, std::string* text) { return FileReader()(filename, text); });
 ```
 
 ##### iter::FileKeeper::Get #####
@@ -77,11 +68,9 @@ std::shared_ptr <typename std::add_const <Buffer>::type> Get();
 ```
 By calling ```Get```, you can get the const shared pointer of your structure ```Buffer```.
 
-```FileKeeper``` using double buffer for hot loading, and ```std::shared_ptr``` have its own reference counter.
+NOTICE, it might cause ```FileKeeper``` reload failed when you hold the shared_ptr for a long time.
 
-So, by calling ```std::shared_ptr::unique()```, we can know whether the buffer is released by all users.
-
-If the buffer is not the latest and released by all users, ```FileKeeper``` will release this buffer for the coming new data.
+You can view the source code of ```iter::DoubleBuffer```(iter/util/double_buffer.hpp) for more details.
 
 ##### iter::FileKeeper::operator bool #####
 ```cpp
