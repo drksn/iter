@@ -2,9 +2,9 @@
 
 ```FileKeeper``` is using ```iter::DoubleBuffer``` for hot loading.
 
-During initialization, ```FileKeeper``` will register to a  ```iter::FileMonitor``` instance. 
+During initialization, ```FileKeeper``` will register to an instance of  ```iter::FileMonitor```. 
 
-When file modification events occured, ```FileKeeper``` will reload immediatelly.
+And when file modification events occured, ```FileKeeper``` will reload immediatelly.
 
 #### Definition ####
 ```cpp
@@ -23,7 +23,7 @@ The ```LoadFunc``` must defined:
 bool operator () (const std::string& filename, Buffer* buffer);
 ```
 
-When file modification events occured, ```FileKeeper``` will call this functor and update ```iter::DoubleBuffer <Buffer>```.
+When file modification events occured, ```FileKeeper``` will call this functor and update its buffer.
 
 For example:
 ```cpp
@@ -58,7 +58,7 @@ For example:
 FileKeeper <FileReader> file_keeper("test.txt");
 ```
 ```cpp
-FileKeeper <Loader> file_keeper("test.txt", 
+FileKeeper <std::function <const std::string&, std::string*> file_keeper("test.txt", 
     [](const std::string& filename, std::string* text) { return FileReader()(filename, text); });
 ```
 
