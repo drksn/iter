@@ -6,11 +6,11 @@
 
 namespace iter {
 
-static Logger logger;
+static Logger g_logger;
 
 #ifndef ITER_LOG_INIT
 #define ITER_LOG_INIT(log_path) \
-    iter::logger.Init(log_path)
+    iter::g_logger.Init(log_path)
 #endif // ITER_LOG_INIT
 
 #ifdef ITER_LOG_DISABLE
@@ -19,7 +19,7 @@ static Logger logger;
 
 #ifndef ITER_LOG_WRITE
 #define ITER_LOG_WRITE(log_str) \
-    iter::logger.Print(log_str)
+    iter::g_logger.Print(log_str)
 #endif // ITER_LOG_WRITE
 
 #ifndef ITER_LOG_HEAD
