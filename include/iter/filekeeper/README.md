@@ -58,12 +58,13 @@ For example:
 FileKeeper <FileReader> file_keeper("test.txt");
 ```
 ```cpp
-FileKeeper <std::function <const std::string&, std::string*> file_keeper("test.txt", 
+FileKeeper <std::function <const std::string&, std::string*>> file_keeper("test.txt", 
     [](const std::string& filename, std::string* text) { return FileReader()(filename, text); });
 ```
 
 ##### iter::FileKeeper::Get #####
 ```cpp
+template <class Buffer>
 std::shared_ptr <typename std::add_const <Buffer>::type> Get();
 ```
 By calling ```Get```, you can get the const shared pointer of your structure ```Buffer```.
@@ -97,10 +98,7 @@ int main() {
     iter::FileKeeper <iter::FileReader> file_keeper(filename);
     std::shared_ptr <const std::string> ptr;
     ptr = file_keeper.Get();
-    if (ptr)
-        std::cout << "Get result = " << *ptr << std::endl;
-    else
-        std::cout << "Buffer is empty." << std::endl;
+    std::cout << "Get result = " << *ptr << std::endl;
     ptr.reset();
 
     std::string new_text = "File keeper modified.";
@@ -108,10 +106,7 @@ int main() {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
     ptr = file_keeper.Get();
-    if (ptr)
-        std::cout << "Get result = " << *ptr << std::endl;
-    else
-        std::cout << "Buffer is empty." << std::endl;
+    std::cout << "Get result = " << *ptr << std::endl;
 
     return 0;
 }
