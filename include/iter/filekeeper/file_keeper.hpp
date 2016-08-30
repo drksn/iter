@@ -12,23 +12,20 @@
 
 namespace iter {
 
-template <class LoadFunc, class Buffer =
-    typename std::remove_pointer <typename LoadFunc::second_argument_type>::type>
+template <class Buffer>
 class FileKeeper {
 private:
-    typedef DoubleBuffer <Buffer> BufferMgr;
-    BufferMgr buffer_mgr_;
+    typedef std::function <bool(const std::string&, Buffer*)> Loader;
+    DoubleBuffer <Buffer> double_buffer_;
 
 public:
-    FileKeeper(
-        const std::string& filename,
-        const LoadFunc& load_func = LoadFunc(), // NOTICE
+    FileKeeper(const Loader& loader, const std::string& filename,
         const std::shared_ptr <FileMonitor>& file_monitor_ptr = std::shared_ptr <FileMonitor>());
 
     ~FileKeeper();
+
     // Get the const shared pointer of buffer,
-    // if buffer is empty, return NULL.
-    auto Get() -> decltype(buffer_mgr_.Get());
+    auto Get() -> decltype(double_buffer_.Get());
 
     // Validation check.
     operator bool ();
@@ -38,14 +35,14 @@ private:
     bool Load();
     void Callback(const FileEvent& file_event);
 
+    Loader loader_;
+    std::string filename_;
+
+    int owner_id_;
     FileMonitor::Node node_;
     std::shared_ptr <FileMonitor> file_monitor_ptr_;
 
-    std::string filename_;
-    std::unique_ptr <LoadFunc> load_func_ptr_;
     std::mutex mtx_;
-    int owner_id_;
-
 };
 
 namespace file_keeper {
@@ -60,4 +57,3 @@ static std::mutex g_mtx;
 #include <iter/filekeeper/detail/file_keeper_impl.hpp>
 
 #endif // ITER_FILE_KEEPER_HPP
-
