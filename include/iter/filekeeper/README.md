@@ -8,34 +8,12 @@ And when file modification events occured, ```FileKeeper``` will reload immediat
 
 #### Definition ####
 ```cpp
-template <class LoadFunc, class Buffer =
-    typename std::remove_pointer <typename LoadFunc::second_argument_type>::type>
+template <class Buffer>
 class FileKeeper;
 ```
-The second template argument ```Buffer``` is your target type to store your data. 
+The template argument ```Buffer``` is your target type to store your data. 
 
 For example, if you want to load some dictionary, ```Buffer``` might be ```std::map <std::string, int>```.
-
-The first template argument ```LoadFunc``` is the type of your load-functor.
-
-The ```LoadFunc``` must defined:
-```cpp
-bool operator () (const std::string& filename, Buffer* buffer);
-```
-
-When file modification events occured, ```FileKeeper``` will call this functor and update its buffer.
-
-For example:
-```cpp
-class FileReader : public std::binary_function <const std::string&, std::string*, bool> {
-public:
-  bool operator (first_argument_type filename, second_argument_type text);
-};
-```
-```cpp 
-typedef std::function <bool(const std::string&, std::string*)> Loader;
-```
-Both ```FileReader``` and ```Loader``` are valid template argument.
 
 #### Member functions ####
 | Member function | Description |
@@ -46,20 +24,16 @@ Both ```FileReader``` and ```Loader``` are valid template argument.
 
 ##### iter::FileKeeper::FileKeeper #####
 ```cpp
-template <class LoadFunc>
+template <class Buffer>
 FileKeeper(
+    const std::function <const std::string&, Buffer*> loader,
     const std::string& filename,
-    const LoadFunc& load_func = LoadFunc(),
     const std::shared_ptr <FileMonitor>& file_monitor_ptr = std::shared_ptr <FileMonitor> ());
 ```
 
 For example:
 ```cpp
-FileKeeper <FileReader> file_keeper("test.txt");
-```
-```cpp
-FileKeeper <std::function <const std::string&, std::string*>> file_keeper("test.txt", 
-    [](const std::string& filename, std::string* text) { return FileReader()(filename, text); });
+FileKeeper <std::string> file_keeper(FileRead, "test.txt");
 ```
 
 ##### iter::FileKeeper::Get #####
@@ -81,7 +55,7 @@ Check whether it is registered on ```FileMonitor``` successfully.
 
 #### Example ####
 ```cpp
-#include <iter/file_io.hpp>
+#include "basicio/file_io.hpp"
 #include <iter/file_keeper.hpp>
 #include <iostream>
 #include <string>
@@ -92,17 +66,17 @@ Check whether it is registered on ```FileMonitor``` successfully.
 int main() {
     std::string filename = "file_keeper.test";
     std::string text = "File keeper test.";
-    bool write_ret = iter::FileWriter()(text, filename);
+    bool write_ret = iter::FileWrite(filename, text);
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-    iter::FileKeeper <iter::FileReader> file_keeper(filename);
+    iter::FileKeeper <std::string> file_keeper(FileRead, filename);
     std::shared_ptr <const std::string> ptr;
     ptr = file_keeper.Get();
     std::cout << "Get result = " << *ptr << std::endl;
     ptr.reset();
 
     std::string new_text = "File keeper modified.";
-    bool new_write_ret = iter::FileWriter()(new_text, filename);
+    bool new_write_ret = iter::FileWrite(filename, new_text);
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
     ptr = file_keeper.Get();

@@ -1,5 +1,5 @@
 //#define ITER_LOG_DISABLE
-#include <iter/file_io.hpp>
+#include "basicio/file_io.hpp"
 #include <iter/file_keeper.hpp>
 #include <gtest/gtest.h>
 
@@ -20,15 +20,14 @@ public:
     virtual void SetUp() {
         content = "girigiri eye~\ngirigiri mind~\n";
         filename = "girigiri.test";
-        bool write_ret = FileWriter()(content, filename);
+        bool write_ret = FileWrite(filename, content);
         EXPECT_TRUE(write_ret);
-        file_keeper_ptr = std::shared_ptr <FileKeeper <FileReader> >(
-            new FileKeeper <FileReader>(filename));
+        file_keeper_ptr = std::make_shared <FileKeeper <std::string>>(FileRead, filename);
     }
 
     std::string content;
     std::string filename;
-    std::shared_ptr <FileKeeper <FileReader> > file_keeper_ptr;
+    std::shared_ptr <FileKeeper <std::string>> file_keeper_ptr;
 };
 
 TEST_F(FileKeeperTest, SimpleTest) {
@@ -40,7 +39,7 @@ TEST_F(FileKeeperTest, SimpleTest) {
 TEST_F(FileKeeperTest, ModifyTest) {
     std::string newtext = "wowuwo~ wowowo~";
     usleep(1e5);
-    bool write_ret = FileWriter()(newtext, filename);
+    bool write_ret = FileWrite(filename, newtext);
     EXPECT_TRUE(write_ret);
     usleep(1e5);
     auto ptr = file_keeper_ptr->Get();
@@ -50,7 +49,7 @@ TEST_F(FileKeeperTest, ModifyTest) {
 
 void MoveWrite(const std::string& content, const std::string& filename) {
     std::string filename_tmp = filename + ".tmp";
-    bool write_ret = FileWriter()(content, filename_tmp);
+    bool write_ret = FileWrite(filename_tmp, content);
     EXPECT_TRUE(write_ret);
     std::string cmd = "mv " + filename_tmp + " " + filename;
     system(cmd.c_str());
@@ -79,7 +78,7 @@ TEST_F(FileKeeperTest, MoveSelfTest) {
     usleep(1e5);
 
     std::string text_test = "BILIBILI_EYE\n";
-    bool write_ret = FileWriter()(text_test, filename+".tmp2");
+    bool write_ret = FileWrite(filename+".tmp2", text_test);
     EXPECT_TRUE(write_ret);
 
     cmd = "mv " + filename + ".tmp2 " + filename;
@@ -94,8 +93,8 @@ TEST_F(FileKeeperTest, MoveSelfTest) {
 TEST_F(FileKeeperTest, DeleteTest) {
     std::string filename_test = "bilibili.test";
     std::string text_test = "GIriGIri\n";
-    FileKeeper <FileReader> fk(filename_test);
-    FileWriter()(text_test, filename_test);
+    FileKeeper <std::string> fk(FileRead, filename_test);
+    FileWrite(filename_test, text_test);
     usleep(1e5);
 
     auto ptr = fk.Get();
@@ -104,7 +103,7 @@ TEST_F(FileKeeperTest, DeleteTest) {
 
     std::string cmd = "rm -rf " + filename_test;
     system(cmd.c_str());
-    FileWriter()(text_test, filename_test);
+    FileWrite(filename_test, text_test);
     usleep(1e5);
 
     ptr = fk.Get();

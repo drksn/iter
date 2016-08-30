@@ -22,10 +22,12 @@ public:
     int Size();
 
     template <class Func, class ...Args>
-    auto PushTask(Func&& f, Args&& ...args)
-        -> std::future <typename std::result_of <Func(Args...)>::type>;
+    std::future <typename std::result_of <Func(Args...)>::type>
+    PushTask(Func&& f, Args&& ...args);
 
 private:
+    void Callback();
+
     int pool_size_;
     bool shutdown_;
     std::vector <std::thread> thread_list_;
@@ -36,22 +38,9 @@ private:
 
 inline ThreadPool::ThreadPool(int pool_size) :
         pool_size_(std::max(pool_size, 1)), shutdown_(false) {
+    auto callback = std::bind(&ThreadPool::Callback, this);
     for (int i = 0; i < pool_size; i++) {
-        thread_list_.emplace_back(
-            [&] {
-                while (1) {
-                    std::function <void()> task;
-                    { // Critical region.
-                        std::unique_lock <std::mutex> lck(mtx_);
-                        cv_.wait(lck, [=]{ return shutdown_ || !task_queue_.empty(); });
-                        if (shutdown_ && task_queue_.empty()) return;
-                        task = std::move(task_queue_.front());
-                        task_queue_.pop();
-                    }
-                    task();
-                }
-            }
-        );
+        thread_list_.emplace_back(callback);
     }
 }
 
@@ -69,8 +58,8 @@ inline int ThreadPool::Size() {
 }
 
 template <class Func, class ...Args>
-auto ThreadPool::PushTask(Func&& f, Args&& ...args)
-    -> std::future <typename std::result_of <Func(Args...)>::type> {
+std::future <typename std::result_of <Func(Args...)>::type>
+ThreadPool::PushTask(Func&& f, Args&& ...args) {
     using return_type = typename std::result_of <Func(Args...)>::type;
     // If thread pool is shutdown, return an empty future object.
     if (shutdown_) return std::future <return_type> ();
@@ -82,6 +71,20 @@ auto ThreadPool::PushTask(Func&& f, Args&& ...args)
     }
     cv_.notify_one();
     return task_ptr->get_future();
+}
+
+inline void ThreadPool::Callback() {
+    while (1) {
+        std::function <void()> task;
+        { // Critical region.
+            std::unique_lock <std::mutex> lck(mtx_);
+            cv_.wait(lck, [=]{ return shutdown_ || !task_queue_.empty(); });
+            if (shutdown_ && task_queue_.empty()) return;
+            task = std::move(task_queue_.front());
+            task_queue_.pop();
+        }
+        task();
+    }
 }
 
 } // iter

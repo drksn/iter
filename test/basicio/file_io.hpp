@@ -8,17 +8,7 @@
 
 namespace iter {
 
-class FileReader : public std::binary_function <const std::string&, std::string*, bool> {
-public:
-    bool operator () (first_argument_type filename, second_argument_type content);
-};
-
-class FileWriter : public std::binary_function <const std::string&, const std::string&, bool> {
-public:
-    bool operator () (first_argument_type content, second_argument_type filename);
-};
-
-inline bool FileReader::operator () (first_argument_type filename, second_argument_type content) {
+inline bool FileRead(const std::string& filename, std::string* content) {
     std::ifstream in(filename.c_str(), std::ios::in | std::ios::binary);
     if (in) {
         try {
@@ -41,7 +31,7 @@ inline bool FileReader::operator () (first_argument_type filename, second_argume
     return false;
 }
 
-inline bool FileWriter::operator() (first_argument_type content, second_argument_type filename) {
+inline bool FileWrite(const std::string& filename, const std::string& content) {
    std::ofstream out(filename.c_str(), std::ios::out | std::ios::binary);
    if (out) {
         try {
