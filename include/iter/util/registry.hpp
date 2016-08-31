@@ -4,58 +4,64 @@
 #include <unordered_map>
 #include <mutex>
 #include <utility>
+#include <type_traits>
 
 namespace iter {
 
-template <class Node, class Map = std::unordered_map <int, Node>>
+template <class Node, class Handle = int,
+        class Map = std::unordered_map <int, Node>>
 class Registry {
 public:
-    int Register(const Node& node);
-    int Register(Node&& node);
-    void Remove(int register_handle);
+    static_assert(std::is_integral <Handle>::value,
+            "Type template parameter 'Handle' must be integral.");
+
+    // Return the handle of this Node.
+    Handle Register(const Node& node);
+    Handle Register(Node&& node);
+    void Remove(Handle handle);
 
     // Check whether it is registered.
-    bool IsRegistered(int register_handle);
+    bool IsRegistered(Handle handle);
 
-    // Get the node correspounding to the register id.
-    Node Get(int register_handle);
+    // Get the node corresponding to the handle.
+    Node Get(Handle handle);
 
 private:
     Map register_map_;
-    int register_handle_nxt_;
+    Handle register_handle_counter_;
     std::mutex mtx_;
 };
 
-template <class Node, class Map>
-int Registry <Node, Map>::Register(const Node& node) {
+template <class Node, class Handle, class Map>
+Handle Registry <Node, Handle, Map>::Register(const Node& node) {
     std::lock_guard <std::mutex> lck(mtx_);
-    register_handle_nxt_ ++;
-    register_map_.emplace(register_handle_nxt_, node);
-    return register_handle_nxt_;
+    register_handle_counter_ ++;
+    register_map_.emplace(register_handle_counter_, node);
+    return register_handle_counter_;
 }
 
-template <class Node, class Map>
-int Registry <Node, Map>::Register(Node&& node) {
+template <class Node, class Handle, class Map>
+Handle Registry <Node, Handle, Map>::Register(Node&& node) {
     std::lock_guard <std::mutex> lck(mtx_);
-    register_handle_nxt_ ++;
-    register_map_.emplace(register_handle_nxt_, std::move(node));
-    return register_handle_nxt_;
+    register_handle_counter_ ++;
+    register_map_.emplace(register_handle_counter_, std::move(node));
+    return register_handle_counter_;
 }
 
-template <class Node, class Map>
-void Registry <Node, Map>::Remove(int register_handle) {
+template <class Node, class Handle, class Map>
+void Registry <Node, Handle, Map>::Remove(Handle handle) {
     std::lock_guard <std::mutex> lck(mtx_);
-    register_map_.erase(register_handle);
+    register_map_.erase(handle);
 }
 
-template <class Node, class Map>
-bool Registry <Node, Map>::IsRegistered(int register_handle) {
-    return register_map_.find(register_handle) != register_map_.end();
+template <class Node, class Handle, class Map>
+bool Registry <Node, Handle, Map>::IsRegistered(Handle handle) {
+    return register_map_.find(handle) != register_map_.end();
 }
 
-template <class Node, class Map>
-Node Registry <Node, Map>::Get(int register_handle) {
-    return register_map_.at(register_handle);
+template <class Node, class Handle, class Map>
+Node Registry <Node, Handle, Map>::Get(Handle handle) {
+    return register_map_.at(handle);
 }
 
 } // namespace iter
