@@ -75,7 +75,7 @@ inline const int& KvStr::GetPrecision() {
     return precision_;
 }
 
-// Four overloads of KvWrite.
+namespace kvutil {
 
 inline std::string KvWrite(KvStr* ptr, const std::string& str) {
     return str;
@@ -114,11 +114,11 @@ inline std::string KvWrite(KvStr* ptr, First&& first, Second&& second, Types&& .
     return first_str + ptr->GetOuterSep() + args_str;
 }
 
-// End of KvWrite.
+} // namespace kvutil
 
 template <class ...Types>
 std::string KvStr::operator () (Types&& ...args) {
-    return KvWrite(this, std::forward <Types> (args)...);
+    return kvutil::KvWrite(this, std::forward <Types> (args)...);
 }
 
 } // namespace iter
