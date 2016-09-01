@@ -5,15 +5,14 @@
 #include <iter/log/detail/log_util.hpp>
 #include <iter/util/fmtstr.hpp>
 
-#ifndef ITER_LOG_HEAD
-#define ITER_LOG_HEAD(log_lv) \
-    iter::LogHead(log_lv, __FILE__, __LINE__, __FUNCTION__)
-#endif // ITER_LOG_HEAD
+#ifndef ITER_LOG_LAYOUT
+#define ITER_LOG_LAYOUT(level, fmt, args...) \
+    (ITER_LOG_HEAD(level) + " " + iter::FmtStr(fmt, ##args) + "\n")
+#endif // ITER_LOG_LAYOUT
 
 #ifndef ITER_LOG_LAYOUT_WRITE
-#define ITER_LOG_LAYOUT_WRITE(level, fmt, args...) \
-    ITER_LOG_WRITE(level, \
-        ITER_LOG_HEAD(level) + " " + iter::FmtStr(fmt, ##args) + "\n")
+#define ITER_LOG_LAYOUT_WRITE(level, args...) \
+    ITER_LOG_WRITE(level, ITER_LOG_LAYOUT(level, ##args))
 #endif // ITER_LOG_LAYOUT_WRITE
 
 #ifndef ITER_DEBUG

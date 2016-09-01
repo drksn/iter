@@ -34,22 +34,37 @@ static std::string LogTimestamp() {
 #define ITER_LOG_THREAD_ID_MOD 997
 #endif // ITER_LOG_THREAD_ID_MOD
 
-static std::string LogHead(
-        const int& lv, const char* filename,
-        const int& line, const char* function) {
+static std::string LogHead(int level, const char* filename, int line, const char* function) {
     std::stringstream ss;
-    ss << "[" << LOG_LEVEL[lv] << "]";
-    ss << "[" << LogTimestamp() << "]";
 
-    static std::hash <std::thread::id> hash_tid;
-    ss << "[" << hash_tid(std::this_thread::get_id()) % ITER_LOG_THREAD_ID_MOD << "]";
+    #ifndef ITER_LOG_DISABLE_LEVEL
+        ss << "[" << LOG_LEVEL[level] << "]";
+    #endif
 
-    /*
-    ss << "[" << filename << ":" << line << "]";
-    ss << "[" << function << "]";
-    */
+    #ifndef ITER_LOG_DISABLE_TIMESTAMP
+        ss << "[" << LogTimestamp() << "]";
+    #endif
+
+    #ifndef ITER_LOG_DISABLE_THREAD_ID
+        static std::hash <std::thread::id> hash_tid;
+        ss << "[" << hash_tid(std::this_thread::get_id()) % ITER_LOG_THREAD_ID_MOD << "]";
+    #endif
+
+    #ifdef ITER_LOG_ENABLE_POSITION
+        ss << "[" << filename << ":" << line << "]";
+    #endif
+
+    #ifdef ITER_LOG_ENABLE_FUNCTION
+        ss << "[" << function << "]";
+    #endif
+
     return ss.str();
 }
+
+#ifndef ITER_LOG_HEAD
+#define ITER_LOG_HEAD(log_lv) \
+    iter::LogHead(log_lv, __FILE__, __LINE__, __FUNCTION__)
+#endif // ITER_LOG_HEAD
 
 } // namespace iter
 
