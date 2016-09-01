@@ -21,7 +21,7 @@ const int THREAD_NUM = 10;
 void log_loop(const std::string& log_str){
     for (int i = 0; i < OUTER; i ++) {
         for (int j = 0; j < INNER; j++) {
-            ITER_DEBUG_KV(MSG(log_str), KV(i), KV(j));
+            ITER_INFO_KV(MSG(log_str), KV(i), KV(j));
         }
         std::this_thread::yield();
     }
@@ -55,7 +55,12 @@ TEST(LogTest, Fmt) {
 }
 
 TEST(LogTest, WriteFile) {
-    ITER_LOG_INIT("iter.log");
+    iter::SetLogDestination(iter::INFO, "iter.log");
+    iter::SetLogDestination(iter::WARN, "warning.log");
+    iter::SetLogDestination(iter::ERROR, "warning.log");
+    iter::SetLogDestination(iter::FATAL, "warning.log");
+
+    ITER_WARN("Warning!");
 
     std::string text[2];
     text[0] = "Write file test";

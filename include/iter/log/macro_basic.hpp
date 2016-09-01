@@ -2,30 +2,31 @@
 #define ITER_MACRO_BASIC_HPP
 
 #include <iter/log/detail/logger.hpp>
-#include <iter/log/detail/log_util.hpp>
+#include <string>
 
 namespace iter {
 
-static Logger g_logger;
+static Logger g_logger[5];
 
-#ifndef ITER_LOG_INIT
-#define ITER_LOG_INIT(log_path) \
-    iter::g_logger.Init(log_path)
-#endif // ITER_LOG_INIT
+static const int INFO = 1;
+static const int WARN = 2;
+static const int ERROR = 3;
+static const int FATAL = 4;
+
+static bool SetLogDestination(int level, const std::string& dest) {
+    if (level < INFO || level > FATAL) return false;
+    g_logger[level].Init(dest);
+    return true;
+}
 
 #ifdef ITER_LOG_DISABLE
-#define ITER_LOG_WRITE(log_str)
+#define ITER_LOG_WRITE(log_lv, log_str)
 #endif // ITER_LOG_DISABLE
 
 #ifndef ITER_LOG_WRITE
-#define ITER_LOG_WRITE(log_str) \
-    iter::g_logger.Print(log_str)
+#define ITER_LOG_WRITE(log_lv, log_str) \
+    iter::g_logger[log_lv].Print(log_str)
 #endif // ITER_LOG_WRITE
-
-#ifndef ITER_LOG_HEAD
-#define ITER_LOG_HEAD(log_lv) \
-    iter::LogHead(log_lv, __FILE__, __LINE__, __FUNCTION__)
-#endif // ITER_LOG_HEAD
 
 } // namespace iter
 
