@@ -27,12 +27,14 @@ public:
     // Get the const shared pointer of buffer,
     auto Get() -> decltype(double_buffer_.Get());
 
+    // Load immediately, without wait modification events occurred.
+    bool Load();
+
     // Validation check.
     operator bool ();
 
 private:
     bool CheckFile();
-    bool Load();
     void Callback(const FileEvent& file_event);
 
     Loader loader_;

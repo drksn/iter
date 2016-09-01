@@ -20,6 +20,7 @@ For example, if you want to load some dictionary, ```Buffer``` might be ```std::
 | ------ | ------ |
 | (constructor) | Construct function. |
 | Get | Get the const shared pointer of buffer. |
+| Load | Load immediately, without wait modification events occurred. |
 | operator bool | Validation check. |
 
 ##### iter::FileKeeper::FileKeeper #####
@@ -46,6 +47,12 @@ By calling ```Get```, you can get the const shared pointer of your structure ```
 NOTICE, it might cause ```FileKeeper``` reload failed when you hold the shared_ptr for a long time.
 
 You can view the source code of ```iter::DoubleBuffer```(iter/util/double_buffer.hpp) for more details.
+
+##### iter::FileKeeper::Load #####
+```cpp
+bool Load();
+```
+You can call this member function to makes your  ```FileKeeper``` instance load immediately.
 
 ##### iter::FileKeeper::operator bool #####
 ```cpp
@@ -93,6 +100,6 @@ Get result = File keeper modified.
 
 stderr:
 ```
-[INFO][2016-07-03T20:25:22.887+0800] msg=Auto load success.||filename=file_keeper.test
-[INFO][2016-07-03T20:25:22.888+0800] msg=Auto load success.||filename=file_keeper.test
+[INFO][2016-07-03T20:25:22.887+0800][594] msg=Auto load success.||filename=file_keeper.test
+[INFO][2016-07-03T20:25:22.888+0800][607] msg=Auto load success.||filename=file_keeper.test
 ```
