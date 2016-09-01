@@ -3,7 +3,6 @@
 
 #include <unordered_map>
 #include <mutex>
-#include <utility>
 #include <type_traits>
 
 namespace iter {
@@ -13,7 +12,7 @@ template <class Node, class Handle = int,
 class Registry {
 public:
     static_assert(std::is_integral <Handle>::value,
-            "Type template parameter 'Handle' must be integral.");
+        "Type template parameter 'Handle' must be integral.");
 
     // Return the handle of this node.
     Handle Register(const Node& node);
