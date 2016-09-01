@@ -9,7 +9,7 @@
 namespace iter {
 
 template <class Node, class Handle = int,
-        class Map = std::unordered_map <int, Node>>
+        class Map = std::unordered_map <Handle, Node>>
 class Registry {
 public:
     static_assert(std::is_integral <Handle>::value,
