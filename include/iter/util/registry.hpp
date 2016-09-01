@@ -15,7 +15,7 @@ public:
     static_assert(std::is_integral <Handle>::value,
             "Type template parameter 'Handle' must be integral.");
 
-    // Return the handle of this Node.
+    // Return the handle of this node.
     Handle Register(const Node& node);
     Handle Register(Node&& node);
     void Remove(Handle handle);
@@ -26,7 +26,7 @@ public:
     // Get the node corresponding to the handle.
     Node Get(Handle handle);
 
-private:
+protected:
     Map register_map_;
     Handle register_handle_counter_;
     std::mutex mtx_;
