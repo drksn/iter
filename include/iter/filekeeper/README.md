@@ -43,7 +43,7 @@ bool Load();
 ```
 You can call this member function to makes your  ```FileKeeper``` instance load immediately.
 
-Usually for initial-loading.
+Usually used for initial-loading.
 
 ##### iter::FileKeeper::Get #####
 ```cpp
