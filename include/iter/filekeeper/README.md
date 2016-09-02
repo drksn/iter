@@ -2,7 +2,7 @@
 
 ```FileKeeper``` is using ```iter::DoubleBuffer``` for hot loading.
 
-During initialization, ```FileKeeper``` will register to an instance of  ```iter::FileMonitor```. 
+During initialization, ```FileKeeper``` will register to the given ```iter::FileMonitor``` instance.
 
 And when file modification events occured, ```FileKeeper``` will reload immediatelly.
 
@@ -27,14 +27,14 @@ For example, if you want to load some dictionary, ```Buffer``` might be ```std::
 ```cpp
 template <class Buffer>
 FileKeeper(
-    const std::function <const std::string&, Buffer*> loader,
     const std::string& filename,
-    const std::shared_ptr <FileMonitor>& file_monitor_ptr = std::shared_ptr <FileMonitor> ());
+    const std::function <const std::string&, Buffer*> loader,
+    const std::shared_ptr <FileMonitor>& file_monitor_ptr);
 ```
 
 For example:
 ```cpp
-FileKeeper <std::string> file_keeper(FileRead, "test.txt");
+FileKeeper <std::string> file_keeper(FileRead, "test.txt", file_monitor_ptr);
 ```
 
 ##### iter::FileKeeper::Get #####
@@ -53,6 +53,7 @@ You can view the source code of ```iter::DoubleBuffer```(iter/util/double_buffer
 bool Load();
 ```
 You can call this member function to makes your  ```FileKeeper``` instance load immediately.
+Usually used for initial loading.
 
 ##### iter::FileKeeper::operator bool #####
 ```cpp
@@ -64,6 +65,7 @@ Check whether it is registered on ```FileMonitor``` successfully.
 ```cpp
 #include "basicio/file_io.hpp"
 #include <iter/file_keeper.hpp>
+#include <iter/file_monitor.hpp>
 #include <iostream>
 #include <string>
 #include <memory>
@@ -76,9 +78,20 @@ int main() {
     bool write_ret = iter::FileWrite(filename, text);
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-    iter::FileKeeper <std::string> file_keeper(FileRead, filename);
+    auto file_monitor_ptr =
+            std::make_shared <iter::FileMonitor> ();
+    auto file_keeper_ptr =
+            std::make_shared <iter::FileKeeper <std::string>> (filename, iter::FileRead, file_monitor_ptr);
+
+    if (file_keeper_ptr->Load()) {
+        std::cout << "Initial load success." << std::endl;
+    }
+    else {
+        std::cout << "Initial load failed." << std::endl;
+    }
+
     std::shared_ptr <const std::string> ptr;
-    ptr = file_keeper.Get();
+    ptr = file_keeper_ptr->Get();
     std::cout << "Get result = " << *ptr << std::endl;
     ptr.reset();
 
@@ -86,20 +99,21 @@ int main() {
     bool new_write_ret = iter::FileWrite(filename, new_text);
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-    ptr = file_keeper.Get();
+    ptr = file_keeper_ptr->Get();
     std::cout << "Get result = " << *ptr << std::endl;
 
     return 0;
 }
 ```
+
 stdout:
 ```
+Initial load success.
 Get result = File keeper test.
 Get result = File keeper modified.
 ```
 
 stderr:
 ```
-[INFO][2016-07-03T20:25:22.887+0800][594] msg=Auto load success.||filename=file_keeper.test
-[INFO][2016-07-03T20:25:22.888+0800][607] msg=Auto load success.||filename=file_keeper.test
+[INFO][2016-09-02T23:31:38.136+0800][835] msg=Auto-loading success.||filename=file_keeper.test
 ```
