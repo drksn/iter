@@ -20,7 +20,7 @@ FileKeeper <Buffer>::FileKeeper(
     auto callback = std::bind(&FileKeeper <Buffer>::Callback, this, _1);
     node_ = {filename_, ITER_FILE_KEEPER_EVENT_MASK, callback};
 
-    FixFile();
+    FixFile(); // NOTICE
 
     // Register to file monitor.
     owner_id_ = file_monitor_ptr_->Register(node_);
