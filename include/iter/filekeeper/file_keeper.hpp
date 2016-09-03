@@ -16,16 +16,18 @@ template <class Buffer>
 class FileKeeper {
 private:
     typedef std::function <bool(const std::string&, Buffer*)> Loader;
-    DoubleBuffer <Buffer> double_buffer_;
+    typedef std::unique_ptr <DoubleBuffer <Buffer>> BufferPtr;
+    BufferPtr buffer_ptr_;
 
 public:
-    FileKeeper(const Loader& loader, const std::string& filename,
-        const std::shared_ptr <FileMonitor>& file_monitor_ptr = std::shared_ptr <FileMonitor>());
+    FileKeeper(
+        const std::string& filename, const Loader& loader,
+        const std::shared_ptr <FileMonitor>& file_monitor_ptr);
 
     ~FileKeeper();
 
-    // Get the const shared pointer of buffer,
-    auto Get() -> decltype(double_buffer_.Get());
+    // Get the const shared pointer of 'Buffer'.
+    auto Get() -> decltype(buffer_ptr_->Get());
 
     // Load immediately, without wait modification events occurred.
     bool Load();
@@ -34,11 +36,11 @@ public:
     operator bool ();
 
 private:
-    bool CheckFile();
+    void FixFile();
     void Callback(const FileEvent& file_event);
 
-    Loader loader_;
     std::string filename_;
+    Loader loader_;
 
     int owner_id_;
     FileMonitor::Node node_;
@@ -46,13 +48,6 @@ private:
 
     std::mutex mtx_;
 };
-
-namespace file_keeper {
-
-static std::shared_ptr <FileMonitor> g_file_monitor_ptr; // NOTICE
-static std::mutex g_mtx;
-
-} // namespace file_keeper
 
 } // namespace iter
 

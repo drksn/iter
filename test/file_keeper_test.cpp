@@ -1,5 +1,6 @@
 //#define ITER_LOG_DISABLE
 #include "basicio/file_io.hpp"
+#include <iter/file_monitor.hpp>
 #include <iter/file_keeper.hpp>
 #include <gtest/gtest.h>
 
@@ -22,11 +23,16 @@ public:
         filename = "girigiri.test";
         bool write_ret = FileWrite(filename, content);
         EXPECT_TRUE(write_ret);
-        file_keeper_ptr = std::make_shared <FileKeeper <std::string>>(FileRead, filename);
+
+        file_monitor_ptr = std::make_shared <FileMonitor> ();
+        file_keeper_ptr = std::make_shared <FileKeeper <std::string>>(
+                filename, FileRead, file_monitor_ptr);
+        bool load_ret = file_keeper_ptr->Load();
     }
 
     std::string content;
     std::string filename;
+    std::shared_ptr <FileMonitor> file_monitor_ptr;
     std::shared_ptr <FileKeeper <std::string>> file_keeper_ptr;
 };
 
@@ -93,7 +99,7 @@ TEST_F(FileKeeperTest, MoveSelfTest) {
 TEST_F(FileKeeperTest, DeleteTest) {
     std::string filename_test = "bilibili.test";
     std::string text_test = "GIriGIri\n";
-    FileKeeper <std::string> fk(FileRead, filename_test);
+    FileKeeper <std::string> fk(filename_test, FileRead, file_monitor_ptr);
     FileWrite(filename_test, text_test);
     usleep(1e5);
 

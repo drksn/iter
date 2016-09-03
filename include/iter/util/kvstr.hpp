@@ -54,12 +54,6 @@ private:
     int precision_;
 };
 
-static KvStr kvstr; // Default functor.
-
-#ifndef KVSTR
-#define KVSTR(args...) iter::kvstr(args)
-#endif // KVSTR
-
 inline KvStr::KvStr(std::string sep_outer, std::string sep_inner, int precision) :
         sep_outer_(sep_outer), sep_inner_(sep_inner), precision_(precision) {}
 
