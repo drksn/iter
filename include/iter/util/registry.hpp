@@ -3,17 +3,15 @@
 
 #include <unordered_map>
 #include <mutex>
-#include <type_traits>
 
 namespace iter {
+
+// Template argument 'Handle' must have operator ++.
 
 template <class Node, class Handle = int,
         class Map = std::unordered_map <Handle, Node>>
 class Registry {
 public:
-    static_assert(std::is_integral <Handle>::value,
-        "Type template parameter 'Handle' must be integral.");
-
     // Return the handle of this node.
     Handle Register(const Node& node);
     Handle Register(Node&& node);

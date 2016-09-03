@@ -20,12 +20,12 @@ public:
     // Get the const shared pointer of the active buffer.
     std::shared_ptr <typename std::add_const<Buffer>::type> Get();
 
-    // NOTICE, you can directly operate the reserved buffer, take care.
+    // You can directly operate the reserved buffer, NO thread-safe guarantee.
     Buffer* GetReservedBuffer();
 
     // Update double buffer,
     // If the reserved buffer is not released by all users, return false.
-    // None-param means using reserved buffer.
+    // None-param means just using reserved buffer.
     bool Update();
     bool Update(const Buffer& buffer);
     bool Update(Buffer&& buffer);
