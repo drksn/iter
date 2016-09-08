@@ -8,8 +8,7 @@ And when file modification events occured, ```FileKeeper``` will reload immediat
 
 #### Definition ####
 ```cpp
-template <class Buffer>
-class FileKeeper;
+template <class Buffer> class FileKeeper;
 ```
 The template argument ```Buffer``` is your target type to store your data. 
 
@@ -34,7 +33,7 @@ FileKeeper(
 
 For example:
 ```cpp
-FileKeeper <std::string> file_keeper(FileRead, "test.txt", file_monitor_ptr);
+FileKeeper <std::string> file_keeper("test.txt", FileRead, file_monitor_ptr);
 ```
 
 ##### iter::FileKeeper::Load #####
