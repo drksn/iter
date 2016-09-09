@@ -20,5 +20,5 @@ Compile options:
 * ```-DITER_LOG_DISABLE``` : Disable all of the logs.
 
 ## Components ##
-* [[FileMonitor](https://github.com/qianyl/iter/tree/master/include/iter/filemonitor)] Triger the registered callback immediately When the listened file system events occured. 
+* [[FileMonitor](https://github.com/qianyl/iter/tree/master/include/iter/filemonitor)] Triger the registered callback immediately when the listened file system events occured. 
 * [[FileKeeper](https://github.com/qianyl/iter/tree/master/include/iter/filekeeper)] Hot load file into your custom structure automatically.
