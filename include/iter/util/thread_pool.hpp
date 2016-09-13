@@ -8,6 +8,7 @@
 #include <mutex>
 #include <queue>
 #include <thread>
+#include <utility>
 #include <vector>
 
 namespace iter {
@@ -26,8 +27,6 @@ public:
     PushTask(Func&& f, Args&& ...args);
 
 private:
-    void Callback();
-
     int pool_size_;
     bool shutdown_;
     std::vector <std::thread> thread_list_;
@@ -38,9 +37,21 @@ private:
 
 inline ThreadPool::ThreadPool(int pool_size) :
         pool_size_(std::max(pool_size, 1)), shutdown_(false) {
-    auto callback = std::bind(&ThreadPool::Callback, this);
-    for (int i = 0; i < pool_size; i++) {
-        thread_list_.emplace_back(callback);
+    auto thread_body = [this]() {
+        while (true) {
+            std::function <void()> task;
+            { // Critical region.
+                std::unique_lock <std::mutex> lck(mtx_);
+                cv_.wait(lck, [=]{ return shutdown_ || !task_queue_.empty(); });
+                if (shutdown_ && task_queue_.empty()) return;
+                task = std::move(task_queue_.front());
+                task_queue_.pop();
+            }
+            task();
+        }
+    };
+    for (int i = 0; i < pool_size_; i++) {
+        thread_list_.emplace_back(thread_body);
     }
 }
 
@@ -71,20 +82,6 @@ ThreadPool::PushTask(Func&& f, Args&& ...args) {
     }
     cv_.notify_one();
     return task_ptr->get_future();
-}
-
-inline void ThreadPool::Callback() {
-    while (1) {
-        std::function <void()> task;
-        { // Critical region.
-            std::unique_lock <std::mutex> lck(mtx_);
-            cv_.wait(lck, [=]{ return shutdown_ || !task_queue_.empty(); });
-            if (shutdown_ && task_queue_.empty()) return;
-            task = std::move(task_queue_.front());
-            task_queue_.pop();
-        }
-        task();
-    }
 }
 
 } // iter
