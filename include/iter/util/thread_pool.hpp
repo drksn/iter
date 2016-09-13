@@ -37,12 +37,12 @@ private:
 
 inline ThreadPool::ThreadPool(int pool_size) :
         pool_size_(std::max(pool_size, 1)), shutdown_(false) {
-    auto thread_body = [this]() {
+    auto thread_body = [this] {
         while (true) {
             std::function <void()> task;
             { // Critical region.
                 std::unique_lock <std::mutex> lck(mtx_);
-                cv_.wait(lck, [=]{ return shutdown_ || !task_queue_.empty(); });
+                cv_.wait(lck, [this] { return shutdown_ || !task_queue_.empty(); });
                 if (shutdown_ && task_queue_.empty()) return;
                 task = std::move(task_queue_.front());
                 task_queue_.pop();
@@ -78,7 +78,7 @@ ThreadPool::PushTask(Func&& f, Args&& ...args) {
         std::bind(std::forward <Func> (f), std::forward <Args> (args)...));
     { // Critical region.
         std::unique_lock <std::mutex> lck(mtx_);
-        task_queue_.emplace([=](){ (*task_ptr)(); });
+        task_queue_.emplace([task_ptr] { (*task_ptr)(); });
     }
     cv_.notify_one();
     return task_ptr->get_future();
