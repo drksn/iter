@@ -11,12 +11,11 @@ Some components might print logs to ```stderr```.
 You can redirect the log destination of each level by using:
 ```
 iter::SetLogDestination(iter::INFO, "notice.log");
-iter::SetLogDestination(iter::WARN, "warning.log");
-iter::SetLogDestination(iter::ERROR, "error.log");
-iter::SetLogDestination(iter::FATAL, "error.log");
+iter::SetLogDestination(iter::WARN | iter::ERROR | iter::FATAL, "warning.log");
 ```
 
-Compile options: 
+Compile options:
+* ```-DDEBUG``` : Enable debug log.
 * ```-DITER_LOG_DISABLE``` : Disable all of the logs.
 
 ## Components ##

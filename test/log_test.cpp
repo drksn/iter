@@ -56,11 +56,12 @@ TEST(LogTest, Fmt) {
 
 TEST(LogTest, WriteFile) {
     iter::SetLogDestination(iter::INFO, "iter.log");
-    iter::SetLogDestination(iter::WARN, "warning.log");
-    iter::SetLogDestination(iter::ERROR, "warning.log");
-    iter::SetLogDestination(iter::FATAL, "warning.log");
+    iter::SetLogDestination(iter::WARN | iter::ERROR, "warning.log");
+    iter::SetLogDestination(iter::FATAL, "fatal.log");
 
     ITER_WARN("Warning!");
+
+    iter::g_logger[2].Print("miao");
 
     std::string text[2];
     text[0] = "Write file test";

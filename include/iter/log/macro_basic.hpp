@@ -6,17 +6,21 @@
 
 namespace iter {
 
-static Logger g_logger[5];
+#define ITER_LOG_LEVEL_NUM 5
 
-static const int INFO = 1;
-static const int WARN = 2;
-static const int ERROR = 3;
-static const int FATAL = 4;
+static Logger g_logger[ITER_LOG_LEVEL_NUM];
 
-static bool SetLogDestination(int level, const std::string& dest) {
-    if (level < INFO || level > FATAL) return false;
-    g_logger[level].Init(dest);
-    return true;
+static const int INFO = 2;
+static const int WARN = 4;
+static const int ERROR = 8;
+static const int FATAL = 16;
+
+static void SetLogDestination(int lv_mask, const std::string& dest) {
+    for (int i = 0; i < ITER_LOG_LEVEL_NUM; i ++) {
+        if ((lv_mask >> i)&1) {
+            g_logger[i].Init(dest);
+        }
+    }
 }
 
 #ifdef ITER_LOG_DISABLE

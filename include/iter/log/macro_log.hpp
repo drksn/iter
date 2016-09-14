@@ -15,6 +15,12 @@
     ITER_LOG_WRITE(level, ITER_LOG_LAYOUT(level, ##args))
 #endif // ITER_LOG_LAYOUT_WRITE
 
+// NOTICE, ITER_DEBUG only used in debug mode.
+#ifndef DEBUG
+#undef ITER_DEBUG
+#define ITER_DEBUG(fmt, args...)
+#endif // DEBUG
+
 #ifndef ITER_DEBUG
 #define ITER_DEBUG(fmt, args...) ITER_LOG_LAYOUT_WRITE(0, fmt, ##args)
 #endif // ITER_DEBUG
