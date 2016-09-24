@@ -23,15 +23,9 @@ build_gtest:
 	bash fetch_gtest.sh
 	cd googletest && cmake . && make
 
-test: log_test util_test file_keeper_test
-
-log_test: log_test.o $(OBJS)
-	$(CXX) ${CXXFLAGS} $^ -o $@ $(LIB)
+test: util_test
 
 util_test: util_test.o $(OBJS)
-	$(CXX) ${CXXFLAGS} $^ -o $@ $(LIB)
-
-file_keeper_test: file_keeper_test.o $(OBJS)
 	$(CXX) ${CXXFLAGS} $^ -o $@ $(LIB)
 
 %.o:%.cpp
