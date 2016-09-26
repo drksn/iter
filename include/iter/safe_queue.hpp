@@ -1,6 +1,7 @@
 #ifndef ITER_SAFE_QUEUE_HPP
 #define ITER_SAFE_QUEUE_HPP
 
+#include <chrono>
 #include <condition_variable>
 #include <deque>
 #include <memory>
@@ -85,6 +86,21 @@ public:
         if (result != NULL) *result = std::move(queue_ptr_->front());
         queue_ptr_->pop();
         return true;
+    }
+
+    // Wait until the queue is not empty.
+    bool Wait() {
+        std::unique_lock <std::mutex> lck(mtx_);
+        cv_.wait(lck, [this] { return shutdown_ || !Empty(); });
+        return !Empty();
+    }
+
+    // Wait with timeout.
+    template <class Rep, class Period>
+    bool WaitFor(const std::chrono::duration <Rep, Period>& timeout) {
+        std::unique_lock <std::mutex> lck(mtx_);
+        cv_.wait(lck, timeout, [this] { return shutdown_ || !Empty(); });
+        return !Empty();
     }
 };
 
