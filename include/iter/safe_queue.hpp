@@ -16,14 +16,13 @@ class SafeQueue {
 private:
     typedef std::queue <ValueType, Container> Queue;
 
+    bool shutdown_;
     std::unique_ptr <Queue> queue_ptr_;
     std::mutex mtx_;
     std::condition_variable cv_;
-    bool shutdown_;
 
 public:
-    SafeQueue() : shutdown_(false),
-        queue_ptr_(std::unique_ptr <Queue>(new Queue())) {}
+    SafeQueue() : shutdown_(false), queue_ptr_(new Queue()) {}
 
     ~SafeQueue() {
         { // Critical region.
@@ -51,17 +50,9 @@ public:
         cv_.notify_one();
     }
 
-    bool Front(ValueType* result) {
-        if (result == NULL) return false;
-
-        std::lock_guard <std::mutex> lck(mtx_);
-        if (Empty()) return false;
-        *result = queue_ptr_->front();
-        return true;
-    }
-
-    // Get the element in tyyhe front of the queue and pop it.
-    bool Pop(ValueType* result = NULL) {
+    // Get the element in the front of the queue and pop it.
+    // Return false when the queue is empty.
+    bool Pop(ValueType* result) {
         std::lock_guard <std::mutex> lck(mtx_);
         if (Empty()) return false;
         if (result != NULL) *result = std::move(queue_ptr_->front());
@@ -69,26 +60,16 @@ public:
         return true;
     }
 
-    // Get the whole queue.
+    // Pop the whole queue.
     std::unique_ptr <Queue> PopAll() {
         std::lock_guard <std::mutex> lck(mtx_);
-        auto result = std::move(queue_ptr_);
-        queue_ptr_ = std::unique_ptr <Queue>(new Queue());
+        std::unique_ptr <Queue> result(new Queue());
+        std::swap(result, queue_ptr_);
         return result;
     }
 
-    // Get the element in tyyhe front of the queue and pop it.
-    // It will be blocked until the queue is not empty or shutdown.
-    bool Get(ValueType* result) {
-        std::unique_lock <std::mutex> lck(mtx_);
-        cv_.wait(lck, [this] { return shutdown_ || !Empty(); });
-        if (Empty()) return false;
-        if (result != NULL) *result = std::move(queue_ptr_->front());
-        queue_ptr_->pop();
-        return true;
-    }
-
-    // Wait until the queue is not empty.
+    // Wait until the queue is not empty or the queue is shutdown.
+    // Return false when the queue is empty.
     bool Wait() {
         std::unique_lock <std::mutex> lck(mtx_);
         cv_.wait(lck, [this] { return shutdown_ || !Empty(); });
@@ -101,6 +82,28 @@ public:
         std::unique_lock <std::mutex> lck(mtx_);
         cv_.wait(lck, timeout, [this] { return shutdown_ || !Empty(); });
         return !Empty();
+    }
+
+    // Get the element in the front of the queue and pop it.
+    // It will be BLOCKED until the queue is not empty or shutdown.
+    bool Get(ValueType* result) {
+        std::unique_lock <std::mutex> lck(mtx_);
+        cv_.wait(lck, [this] { return shutdown_ || !Empty(); });
+        if (Empty()) return false;
+        if (result != NULL) *result = std::move(queue_ptr_->front());
+        queue_ptr_->pop();
+        return true;
+    }
+
+    // Get with timeout.
+    template <class Rep, class Period>
+    bool Get(ValueType* result, const std::chrono::duration <Rep, Period>& timeout) {
+        std::unique_lock <std::mutex> lck(mtx_);
+        cv_.wait(lck, timeout, [this] { return shutdown_ || !Empty(); });
+        if (Empty()) return false;
+        if (result != NULL) *result = std::move(queue_ptr_->front());
+        queue_ptr_->pop();
+        return true;
     }
 };
 
