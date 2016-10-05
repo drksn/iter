@@ -30,7 +30,7 @@ private:
     int pool_size_;
     bool shutdown_;
     std::vector <std::thread> thread_list_;
-    std::queue <std::function <void()> > task_queue_;
+    std::queue <std::function <void()>> task_queue_;
     std::mutex mtx_;
     std::condition_variable cv_;
 };
