@@ -32,7 +32,7 @@ public:
         cv_.notify_all();
     }
 
-    decltype(Queue::size()) Size() {
+    typename std::result_of <decltype(&Queue::size)(Queue)>::type Size() {
         return queue_ptr_->size();
     }
 
