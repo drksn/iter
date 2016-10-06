@@ -13,9 +13,10 @@ namespace iter {
 
 template <class ValueType, class Container = std::deque <ValueType>>
 class SafeQueue {
-private:
+public:
     typedef std::queue <ValueType, Container> Queue;
 
+private:
     bool shutdown_;
     std::unique_ptr <Queue> queue_ptr_;
     std::mutex mtx_;

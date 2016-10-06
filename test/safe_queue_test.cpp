@@ -65,3 +65,50 @@ TEST(SafeTest, SafeQueue) {
     }
 }
 
+TEST(PopAllTest, SafeQueue) {
+    std::unique_ptr <ThreadPool> pool(new ThreadPool(4));
+    SafeQueue <int> safe_queue;
+
+    const int PUB = 10, SUB = 10, NUM = 10000;
+
+    for (int pub = 0; pub < PUB; pub ++) {
+        pool->PushTask([&safe_queue] {
+            for (int i = 0; i < NUM; i ++) {
+                safe_queue.Push(i);
+                std::this_thread::sleep_for(
+                    std::chrono::microseconds(10));
+            }
+        });
+    }
+
+    int count[NUM] = {};
+    std::mutex mtx;
+    for (int sub = 0; sub < SUB; sub ++) {
+        pool->PushTask([&safe_queue, &mtx, &count, sub]() {
+            std::queue <int> queue;
+            for (int i = 0; i < PUB * NUM / SUB; i ++) {
+                auto tmp_queue = safe_queue.PopAll();
+                while (!tmp_queue->empty()) {
+                    queue.push(tmp_queue->front());
+                    tmp_queue->pop();
+                }
+                std::this_thread::sleep_for(
+                    std::chrono::microseconds(10));
+            }
+
+            std::lock_guard <std::mutex> lck(mtx);
+            while (!queue.empty()) {
+                count[queue.front()] ++;
+                queue.pop();
+            }
+        });
+    }
+
+    // Wait for all task finished.
+    pool.reset();
+
+    for (int i = 0; i < NUM; i ++) {
+        EXPECT_EQ(count[i], PUB);
+    }
+}
+
