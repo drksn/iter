@@ -26,9 +26,8 @@ public:
         cv_.notify_all();
     }
 
-    int Size() {
-        return queue_ptr_->size();
-    }
+public:
+    decltype(std::declval <Queue>().size()) Size() { return queue_ptr_->size(); }
 
     bool Empty() { return queue_ptr_->empty(); }
 
