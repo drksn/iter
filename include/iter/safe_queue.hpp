@@ -3,7 +3,6 @@
 
 #include <chrono>
 #include <condition_variable>
-#include <deque>
 #include <memory>
 #include <mutex>
 #include <queue>
@@ -11,18 +10,12 @@
 
 namespace iter {
 
-template <class ValueType, class Container = std::deque <ValueType>>
+template <class Value, class Queue = std::queue <Value>>
 class SafeQueue {
 public:
-    typedef std::queue <ValueType, Container> Queue;
+    typedef Value ValueType;
+    typedef Queue QueueType;
 
-private:
-    bool shutdown_;
-    std::unique_ptr <Queue> queue_ptr_;
-    std::mutex mtx_;
-    std::condition_variable cv_;
-
-public:
     SafeQueue() : shutdown_(false), queue_ptr_(new Queue()) {}
 
     ~SafeQueue() {
@@ -33,19 +26,19 @@ public:
         cv_.notify_all();
     }
 
-    typename std::result_of <decltype(&Queue::size)(Queue)>::type Size() {
+    int Size() {
         return queue_ptr_->size();
     }
 
     bool Empty() { return queue_ptr_->empty(); }
 
-    void Push(const ValueType& val) {
+    void Push(const Value& val) {
         std::lock_guard <std::mutex> lck(mtx_);
         queue_ptr_->push(val);
         cv_.notify_one();
     }
 
-    void Push(ValueType&& val) {
+    void Push(Value&& val) {
         std::lock_guard <std::mutex> lck(mtx_);
         queue_ptr_->push(std::move(val));
         cv_.notify_one();
@@ -53,10 +46,10 @@ public:
 
     // Get the element in the front of the queue and pop it.
     // Return false when the queue is empty.
-    bool Pop(ValueType* result) {
+    bool Pop(Value* result) {
         std::lock_guard <std::mutex> lck(mtx_);
         if (Empty()) return false;
-        if (result != NULL) *result = std::move(queue_ptr_->front());
+        if (result != NULL) *result = queue_ptr_->front();
         queue_ptr_->pop();
         return true;
     }
@@ -87,25 +80,31 @@ public:
 
     // Get the element in the front of the queue and pop it.
     // It will be BLOCKED until the queue is not empty or shutdown.
-    bool Get(ValueType* result) {
+    bool Get(Value* result) {
         std::unique_lock <std::mutex> lck(mtx_);
         cv_.wait(lck, [this] { return shutdown_ || !Empty(); });
         if (Empty()) return false;
-        if (result != NULL) *result = std::move(queue_ptr_->front());
+        if (result != NULL) *result = queue_ptr_->front();
         queue_ptr_->pop();
         return true;
     }
 
     // Get with timeout.
     template <class Rep, class Period>
-    bool Get(ValueType* result, const std::chrono::duration <Rep, Period>& timeout) {
+    bool Get(Value* result, const std::chrono::duration <Rep, Period>& timeout) {
         std::unique_lock <std::mutex> lck(mtx_);
         cv_.wait(lck, timeout, [this] { return shutdown_ || !Empty(); });
         if (Empty()) return false;
-        if (result != NULL) *result = std::move(queue_ptr_->front());
+        if (result != NULL) *result = queue_ptr_->front();
         queue_ptr_->pop();
         return true;
     }
+
+private:
+    bool shutdown_;
+    std::unique_ptr <Queue> queue_ptr_;
+    std::mutex mtx_;
+    std::condition_variable cv_;
 };
 
 } // namespace iter
