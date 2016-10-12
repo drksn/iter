@@ -48,7 +48,7 @@ public:
     bool Pop(Value* result) {
         std::lock_guard <std::mutex> lck(mtx_);
         if (Empty()) return false;
-        if (result != NULL) *result = queue_ptr_->front();
+        if (result != NULL) *result = std::move(queue_ptr_->front());
         queue_ptr_->pop();
         return true;
     }
@@ -83,7 +83,7 @@ public:
         std::unique_lock <std::mutex> lck(mtx_);
         cv_.wait(lck, [this] { return shutdown_ || !Empty(); });
         if (Empty()) return false;
-        if (result != NULL) *result = queue_ptr_->front();
+        if (result != NULL) *result = std::move(queue_ptr_->front());
         queue_ptr_->pop();
         return true;
     }
@@ -94,7 +94,7 @@ public:
         std::unique_lock <std::mutex> lck(mtx_);
         cv_.wait(lck, timeout, [this] { return shutdown_ || !Empty(); });
         if (Empty()) return false;
-        if (result != NULL) *result = queue_ptr_->front();
+        if (result != NULL) *result = std::move(queue_ptr_->front());
         queue_ptr_->pop();
         return true;
     }
