@@ -7,6 +7,7 @@
 #include <mutex>
 #include <queue>
 #include <utility>
+#include <type_traits>
 
 namespace iter {
 
@@ -41,6 +42,17 @@ public:
         std::lock_guard <std::mutex> lck(mtx_);
         queue_ptr_->push(std::move(val));
         cv_.notify_one();
+    }
+
+    // If the type of value is not copy assignable, disable this method.
+    template <class Type,
+        class = typename std::enable_if <std::is_copy_assignable <Type>::value>::type,
+        class = typename std::enable_if <std::is_convertible <Value, Type>::value>::type>
+    bool Front(Type* result) {
+        std::lock_guard <std::mutex> lck(mtx_);
+        if (Empty()) return false;
+        if (result != NULL) *result = queue_ptr_->front();
+        return true;
     }
 
     // Get the element in the front of the queue and pop it.

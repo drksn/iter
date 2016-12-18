@@ -1,7 +1,6 @@
 #include <iter/split.hpp>
 #include <iter/time_keeper.hpp>
 #include <iter/double_buffer.hpp>
-#include <iter/unique_queue.hpp>
 #include <gtest/gtest.h>
 
 #include <iostream>
@@ -87,24 +86,5 @@ TEST(UtilTest, DoubleBuffer) {
 
     auto abp = db.Get();
     EXPECT_EQ(*abp, *ptr);
-}
-
-TEST(UtilTest, UniqueQueue) {
-    UniqueQueue <int> uq;
-    uq.Push(1);
-    uq.Push(2);
-    auto t1 = uq.Get();
-
-    EXPECT_EQ(t1->front(), 1);
-    t1->pop();
-    EXPECT_EQ(t1->front(), 2);
-    t1->pop();
-    EXPECT_TRUE(t1->empty());
-
-    uq.Push(3);
-    auto t2 = uq.Get();
-    EXPECT_EQ(t2->front(), 3);
-    t2->pop();
-    EXPECT_TRUE(t2->empty());
 }
 

@@ -112,3 +112,21 @@ TEST(PopAllTest, SafeQueue) {
     }
 }
 
+TEST(FrontTest, SafeQueue) {
+    SafeQueue <int> int_queue;
+    int_queue.Push(100);
+    int int_r = -1;
+    bool ret1 = int_queue.Front(&int_r);
+    EXPECT_TRUE(ret1);
+    EXPECT_EQ(int_r, 100);
+
+    SafeQueue <std::thread> t_queue;
+    t_queue.Push(std::thread());
+    std::thread t;
+    /*
+     * NOTICE: Uncomment the following line will cause compile error,
+     * because the type std::thread is not copy assignable.
+     */
+
+    // t_queue.Front(&t);
+}
