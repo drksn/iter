@@ -45,8 +45,9 @@ TEST(SpeedTest, ThreadPool) {
 
     TimeKeeper one_tk;
     int ret = 0;
-    for (int i = 0; i < CALC_NUM; i ++) ret += i;
-    std::cout << "Same task with thread pool elapsed time "
+    for (int i = 0; i < TASK_NUM; i ++)
+        for (int j = 0; j < tot; j ++) ret += i;
+    std::cout << "Same task without thread pool elapsed time "
         << one_tk.GetElapsedTime <double> () << " ms" << std::endl;
 
     for (int i = 0; i < TASK_NUM; i ++) {
