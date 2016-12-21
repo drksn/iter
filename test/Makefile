@@ -23,12 +23,15 @@ build_gtest:
 	bash fetch_gtest.sh
 	cd googletest && cmake . && make
 
-test: util_test safe_queue_test
+test: util_test safe_queue_test thread_pool_test
 
 util_test: util_test.o $(OBJS)
 	$(CXX) ${CXXFLAGS} $^ -o $@ $(LIB)
 
 safe_queue_test: safe_queue_test.o $(OBJS)
+	$(CXX) ${CXXFLAGS} $^ -o $@ $(LIB)
+
+thread_pool_test: thread_pool_test.o $(OBJS)
 	$(CXX) ${CXXFLAGS} $^ -o $@ $(LIB)
 
 %.o:%.cpp
