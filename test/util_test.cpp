@@ -1,6 +1,7 @@
 #include <iter/split.hpp>
 #include <iter/time_keeper.hpp>
 #include <iter/double_buffer.hpp>
+#include <iter/kvstr.hpp>
 #include <gtest/gtest.h>
 
 #include <iostream>
@@ -88,3 +89,16 @@ TEST(UtilTest, DoubleBuffer) {
     EXPECT_EQ(*abp, *ptr);
 }
 
+TEST(UtilTest, KvStr) {
+    std::map <std::string, int> mp;
+    mp["a"] = 1;
+    mp["b"] = 2;
+    auto p = std::make_pair("key", "value");
+    std::string ret1 = KVSTR(mp, p);
+    EXPECT_EQ(ret1, "a=1||b=2||key=value");
+
+    std::vector <std::pair <std::string, std::string>> vec;
+    for (int i = 0; i < 3; i++) vec.emplace_back(p);
+    std::string ret2 = KVSTR(vec);
+    EXPECT_EQ(ret2, "key=value||key=value||key=value");
+}

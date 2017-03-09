@@ -54,6 +54,10 @@ private:
     int precision_;
 };
 
+#ifndef KVSTR
+#define KVSTR(args...) iter::KvStr()(args)
+#endif // KVSTR
+
 inline KvStr::KvStr(std::string sep_outer, std::string sep_inner, int precision) :
         sep_outer_(sep_outer), sep_inner_(sep_inner), precision_(precision) {}
 
@@ -69,7 +73,7 @@ inline const int& KvStr::GetPrecision() {
     return precision_;
 }
 
-namespace _kv {
+namespace {
 
 inline std::string KvWrite(KvStr* ptr, const std::string& str) {
     return str;
@@ -108,11 +112,11 @@ inline std::string KvWrite(KvStr* ptr, First&& first, Second&& second, Types&& .
     return first_str + ptr->GetOuterSep() + args_str;
 }
 
-} // namespace _kv
+} // namespace
 
 template <class ...Types>
 std::string KvStr::operator () (Types&& ...args) {
-    return _kv::KvWrite(this, std::forward <Types> (args)...);
+    return KvWrite(this, std::forward <Types> (args)...);
 }
 
 } // namespace iter
