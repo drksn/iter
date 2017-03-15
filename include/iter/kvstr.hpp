@@ -39,81 +39,70 @@ public:
     KvStr(
         std::string sep_outer = ITER_KV_SEP_OUTER,
         std::string sep_inner = ITER_KV_SEP_INNER,
-        int precision = ITER_KV_PRECISION);
+        int precision = ITER_KV_PRECISION) :
+        sep_outer_(sep_outer),
+        sep_inner_(sep_inner),
+        precision_(precision) {}
 
-    const std::string& GetInnerSep() const;
-    const std::string& GetOuterSep() const;
-    const int& GetPrecision() const;
+    std::string sep_inner() const { return sep_inner_; }
+    std::string sep_outer() const { return sep_outer_; }
+    int precision() const { return precision_; }
 
-    template <class ...Types> std::string operator () (Types&& ...args) const;
+    template <class ...Types>
+    std::string operator () (Types&& ...args) const {
+        return write(std::forward<Types>(args)...);
+    }
 
 private:
     std::string sep_outer_, sep_inner_;
     int precision_;
-};
 
-inline KvStr::KvStr(std::string sep_outer, std::string sep_inner, int precision) :
-        sep_outer_(sep_outer), sep_inner_(sep_inner), precision_(precision) {}
-
-inline const std::string& KvStr::GetInnerSep() const {
-    return sep_inner_;
-}
-
-inline const std::string& KvStr::GetOuterSep() const {
-    return sep_outer_;
-}
-
-inline const int& KvStr::GetPrecision() const {
-    return precision_;
-}
-
-namespace {
-
-inline std::string KvWrite(const KvStr& kvstr, const std::string& str) {
-    return str;
-}
-
-template <class T,
-    class = typename std::enable_if <std::tuple_size <T>::value == 2>::type>
-inline std::string KvWrite(const KvStr& kvstr, const T& t) {
-    std::stringstream ss;
-    ss.precision(kvstr.GetPrecision());
-    ss << std::get<0>(t) << kvstr.GetInnerSep() << std::get<1>(t);
-    return ss.str();
-}
-
-template <class T,
-    class = typename std::enable_if <
-        std::tuple_size <typename T::value_type>::value == 2>::type,
-    class = typename T::iterator>
-inline std::string KvWrite(const KvStr& kvstr, const T& t) {
-    if (std::begin(t) == std::end(t)) return "";
-    auto i = std::begin(t);
-    std::stringstream ss;
-    ss.precision(kvstr.GetPrecision());
-    ss << std::get<0>(*i) << kvstr.GetInnerSep() << std::get<1>(*i);
-    for (i++; i != std::end(t); i++) {
-        ss << kvstr.GetOuterSep() << std::get<0>(*i)
-            << kvstr.GetInnerSep() << std::get<1>(*i);
+private:
+    std::string write(const std::string& str) const {
+        return str;
     }
-    return ss.str();
-}
 
-template <class First, class Second, class ...Types>
-inline std::string KvWrite(const KvStr& kvstr,
-        First&& first, Second&& second, Types&& ...args) {
-    std::string first_str = KvWrite(kvstr, first);
-    std::string args_str = KvWrite(kvstr, second, args...);
-    if (args_str.size() == 0) return first_str;
-    return first_str + kvstr.GetOuterSep() + args_str;
-}
+    std::string&& write(std::string&& str) const {
+        return std::move(str);
+    }
 
-} // namespace
+    template <class T,
+        class = typename std::enable_if <
+            std::tuple_size <T>::value == 2>::type>
+    std::string write(const T& t) const {
+        std::stringstream ss;
+        ss.precision(precision_);
+        ss << std::get<0>(t) << sep_inner_ << std::get<1>(t);
+        return ss.str();
+    }
 
-template <class ...Types>
-std::string KvStr::operator () (Types&& ...args) const {
-    return KvWrite(*this, std::forward <Types> (args)...);
-}
+    template <class T,
+        class = typename std::enable_if <
+            std::tuple_size <
+                typename T::value_type>::value == 2>::type,
+        class = typename T::iterator>
+    std::string write(const T& t) const {
+        if (std::begin(t) == std::end(t)) return "";
+        auto i = std::begin(t);
+        std::stringstream ss;
+        ss.precision(precision_);
+        ss << std::get<0>(*i) << sep_inner_ << std::get<1>(*i);
+        for (i++; i != std::end(t); i++) {
+            ss << sep_outer_ << std::get<0>(*i)
+                << sep_inner_ << std::get<1>(*i);
+        }
+        return ss.str();
+    }
+
+    template <class First, class Second, class ...Types>
+    std::string write(
+        First&& first, Second&& second, Types&& ...args) const {
+        std::string first_str = write(first);
+        std::string args_str = write(second, args...);
+        if (args_str.size() == 0) return first_str;
+        return first_str + sep_outer_ + args_str;
+    }
+};
 
 } // namespace iter
 

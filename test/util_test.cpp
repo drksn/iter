@@ -94,11 +94,11 @@ TEST(UtilTest, KvStr) {
     mp["a"] = 1;
     mp["b"] = 2;
     auto p = std::make_pair("key", "value");
-    std::string ret1 = KVSTR(mp, p);
-    EXPECT_EQ(ret1, "a=1||b=2||key=value");
+    std::string ret1 = iter::KvStr()("test", mp, p);
+    EXPECT_EQ(ret1, "test||a=1||b=2||key=value");
 
     std::vector <std::pair <std::string, std::string>> vec;
     for (int i = 0; i < 3; i++) vec.emplace_back(p);
-    std::string ret2 = KVSTR(vec);
-    EXPECT_EQ(ret2, "key=value||key=value||key=value");
+    std::string ret2 = iter::KvStr()(vec, mp);
+    EXPECT_EQ(ret2, "key=value||key=value||key=value||a=1||b=2");
 }
