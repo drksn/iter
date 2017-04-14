@@ -12,8 +12,8 @@
 using namespace iter;
 
 TEST(SafeTest, SafeQueue) {
-    std::unique_ptr <ThreadPool> pool(new ThreadPool(4));
-    SafeQueue <int> safe_queue;
+    std::unique_ptr<ThreadPool> pool(new ThreadPool(4));
+    SafeQueue<int> safe_queue;
 
     const int PUB = 10, SUB = 10, NUM = 10000;
 
@@ -39,7 +39,7 @@ TEST(SafeTest, SafeQueue) {
                     safe_queue.Get(&ret);
                 }
                 else {
-                    std::lock_guard <std::mutex> lck(mtx);
+                    std::lock_guard<std::mutex> lck(mtx);
                     safe_queue.Wait();
                     bool succ = safe_queue.Pop(&ret);
                     EXPECT_TRUE(succ);
@@ -49,7 +49,7 @@ TEST(SafeTest, SafeQueue) {
                     std::chrono::microseconds(10));
             }
 
-            std::lock_guard <std::mutex> lck(mtx);
+            std::lock_guard<std::mutex> lck(mtx);
             while (!queue.empty()) {
                 count[queue.front()] ++;
                 queue.pop();
@@ -66,8 +66,8 @@ TEST(SafeTest, SafeQueue) {
 }
 
 TEST(PopAllTest, SafeQueue) {
-    std::unique_ptr <ThreadPool> pool(new ThreadPool(4));
-    SafeQueue <int> safe_queue;
+    std::unique_ptr<ThreadPool> pool(new ThreadPool(4));
+    SafeQueue<int> safe_queue;
 
     const int PUB = 10, SUB = 10, NUM = 10000;
 
@@ -113,14 +113,14 @@ TEST(PopAllTest, SafeQueue) {
 }
 
 TEST(FrontTest, SafeQueue) {
-    SafeQueue <int> int_queue;
+    SafeQueue<int> int_queue;
     int_queue.Push(100);
-    int int_r = -1;
+    uint64_t int_r = -1;
     bool ret1 = int_queue.Front(&int_r);
     EXPECT_TRUE(ret1);
     EXPECT_EQ(int_r, 100);
 
-    SafeQueue <std::thread> t_queue;
+    SafeQueue<std::thread> t_queue;
     t_queue.Push(std::thread());
     std::thread t;
     /*
@@ -129,4 +129,15 @@ TEST(FrontTest, SafeQueue) {
      */
 
     // t_queue.Front(&t);
+}
+
+TEST(CopyTest, SafeQueue) {
+    SafeQueue<std::unique_ptr<int>> unique_int_queue;
+    std::unique_ptr<int> ptr(new int(10));
+    unique_int_queue.Push(std::move(ptr));
+    EXPECT_TRUE(ptr == nullptr);
+
+    std::unique_ptr<int> ppp;
+    unique_int_queue.Pop(&ppp);
+    EXPECT_EQ(*ppp, 10);
 }
