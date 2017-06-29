@@ -1,9 +1,9 @@
 #ifndef ITER_FMT_STR_HPP
 #define ITER_FMT_STR_HPP
 
-#include <string>
 #include <cstdio>
 #include <memory>
+#include <string>
 #include <utility>
 
 namespace iter {

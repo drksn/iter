@@ -1,14 +1,14 @@
 #ifndef ITER_SPLIT_HPP
 #define ITER_SPLIT_HPP
 
-#include <vector>
 #include <string>
+#include <vector>
 
 namespace iter {
 
-inline std::vector <std::string> Split(
+inline std::vector<std::string> Split(
         const std::string& str, const std::string& sep) {
-    std::vector <std::string> ret;
+    std::vector<std::string> ret;
     // If no seperator, return the whole line.
     if (sep.size() == 0){
         ret.push_back(str);

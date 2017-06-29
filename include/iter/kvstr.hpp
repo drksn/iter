@@ -3,17 +3,17 @@
 
 #include <sstream>
 #include <string>
-#include <utility>
 #include <type_traits>
+#include <utility>
 
 namespace iter {
 
-template <class K, class V>
+template<class K, class V>
 inline auto Kv(K&& k, V&& v)->decltype(std::make_pair(k, v)) {
     return std::make_pair(std::forward<K>(k), std::forward<V>(v));
 }
 
-template <class N, class K, class V>
+template<class N, class K, class V>
 inline auto Kv(N&& n, K&& k, V&& v)->decltype(std::make_pair(k, v)) {
     return std::make_pair(std::forward<K>(k), std::forward<V>(v));
 }
@@ -48,7 +48,7 @@ public:
     std::string sep_outer() const { return sep_outer_; }
     int precision() const { return precision_; }
 
-    template <class ...Types>
+    template<class ...Types>
     std::string operator () (Types&& ...args) const {
         return write(std::forward<Types>(args)...);
     }
@@ -66,9 +66,9 @@ private:
         return std::move(str);
     }
 
-    template <class T,
-        class = typename std::enable_if <
-            std::tuple_size <T>::value == 2>::type>
+    template<class T,
+        class = typename std::enable_if<
+            std::tuple_size<T>::value == 2>::type>
     std::string write(const T& t) const {
         std::stringstream ss;
         ss.precision(precision_);
@@ -76,9 +76,9 @@ private:
         return ss.str();
     }
 
-    template <class T,
-        class = typename std::enable_if <
-            std::tuple_size <
+    template<class T,
+        class = typename std::enable_if<
+            std::tuple_size<
                 typename T::value_type>::value == 2>::type,
         class = typename T::iterator>
     std::string write(const T& t) const {
@@ -94,7 +94,7 @@ private:
         return ss.str();
     }
 
-    template <class First, class Second, class ...Types>
+    template<class First, class Second, class ...Types>
     std::string write(
         First&& first, Second&& second, Types&& ...args) const {
         std::string first_str = write(first);
